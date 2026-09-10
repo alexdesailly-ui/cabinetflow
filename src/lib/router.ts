@@ -8,7 +8,7 @@ export type Route =
   | { name: 'home' }
   | { name: 'missions' }
   | { name: 'mission-new' }
-  | { name: 'mission'; id: string }
+  | { name: 'mission'; id: string; onglet?: string }
   | { name: 'vivier' }
   | { name: 'remplacant'; id: string }
   | { name: 'dossier' }
@@ -27,7 +27,7 @@ function parse(): Route {
     case 'onboarding': return { name: 'onboarding', role: (b === 'remplacant' ? 'remplacant' : 'cabinet'), parrain: c }
     case 'home': return { name: 'home' }
     case 'missions': return { name: 'missions' }
-    case 'mission': return b === 'nouveau' ? { name: 'mission-new' } : { name: 'mission', id: b }
+    case 'mission': return b === 'nouveau' ? { name: 'mission-new' } : { name: 'mission', id: b, onglet: c }
     case 'vivier': return { name: 'vivier' }
     case 'remplacant': return { name: 'remplacant', id: b }
     case 'dossier': return { name: 'dossier' }
@@ -43,7 +43,7 @@ export function href(r: Route): string {
     case 'invite': return `#/invite/${r.code}${r.nom ? '/' + encodeURIComponent(r.nom) : ''}`
     case 'onboarding': return `#/onboarding/${r.role}${r.parrain ? '/' + r.parrain : ''}`
     case 'mission-new': return '#/mission/nouveau'
-    case 'mission': return `#/mission/${r.id}`
+    case 'mission': return `#/mission/${r.id}${r.onglet ? '/' + r.onglet : ''}`
     case 'remplacant': return `#/remplacant/${r.id}`
     default: return `#/${r.name}`
   }

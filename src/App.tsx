@@ -15,6 +15,7 @@ import { Onboarding } from './screens/Onboarding'
 import { Parrainage } from './screens/Parrainage'
 import { Dossier, Missions, RemplacantHome } from './screens/RemplacantHome'
 import { RemplacantProfil, Vivier } from './screens/Vivier'
+import { DemoPanel } from './screens/Demo'
 
 export default function App() {
   return <ToastProvider><Shell /></ToastProvider>
@@ -65,6 +66,7 @@ function Shell() {
       </main>
 
       {moi && <Nav route={route} moi={moi} />}
+      <DemoPanel moi={moi} />
     </div>
   )
 }
@@ -80,7 +82,7 @@ function Ecran({ route, moi }: { route: Route; moi: Account | null }) {
     case 'home': return moi.role === 'cabinet' ? <CabinetHome moi={moi} /> : <RemplacantHome moi={moi} />
     case 'missions': return <Missions moi={moi} />
     case 'mission-new': return <MissionNew moi={moi} />
-    case 'mission': return <MissionDetail id={route.id} moi={moi} />
+    case 'mission': return <MissionDetail id={route.id} moi={moi} ongletInitial={route.onglet} />
     case 'vivier': return <Vivier moi={moi} />
     case 'remplacant': return <RemplacantProfil id={route.id} moi={moi} />
     case 'dossier': return <Dossier moi={moi} />

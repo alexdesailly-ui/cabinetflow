@@ -9,7 +9,7 @@ import type { Account, Contrat, Mission, PatientTournee } from '../lib/types'
 
 type Onglet = 'candidatures' | 'contrat' | 'passation' | 'retrocession'
 
-export function MissionDetail({ id, moi }: { id: string; moi: Account }) {
+export function MissionDetail({ id, moi, ongletInitial }: { id: string; moi: Account; ongletInitial?: string }) {
   const e = useStore()
   const m = e.missions.find(x => x.id === id)
   if (!m) return <div className="card">Ce remplacement n’existe plus. <button className="linkbtn" onClick={() => go({ name: 'home' })}>Retour</button></div>
@@ -18,7 +18,8 @@ export function MissionDetail({ id, moi }: { id: string; moi: Account }) {
   const c = contratDeMission(e, m.id)
   const retenu = compte(e, m.remplacantRetenuId)
   const est = estimerRetrocession(m)
-  const [onglet, setOnglet] = useState<Onglet>(m.remplacantRetenuId ? 'contrat' : 'candidatures')
+  const ongletsValides: Onglet[] = ['candidatures', 'contrat', 'passation', 'retrocession']
+  const [onglet, setOnglet] = useState<Onglet>(ongletsValides.includes(ongletInitial as Onglet) ? (ongletInitial as Onglet) : m.remplacantRetenuId ? 'contrat' : 'candidatures')
   const jours = joursEntre(new Date(), m.du)
 
   const onglets: { k: Onglet; l: string; dot?: boolean }[] = [
