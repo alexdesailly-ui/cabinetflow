@@ -8,6 +8,8 @@ Le raisonnement marché, le modèle économique et la mécanique virale sont dé
 
 ## Tester
 
+**Démo en ligne : https://alexdesailly-ui.github.io/cabinetflow/** (déployée automatiquement par GitHub Pages à chaque push).
+
 L'application est livrée sous forme d'un fichier HTML unique, sans backend : toutes les données restent dans le navigateur (`localStorage`). Un monde de démonstration est installé à la première ouverture.
 
 ```bash
