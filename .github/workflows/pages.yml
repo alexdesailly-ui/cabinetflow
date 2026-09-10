@@ -4,7 +4,7 @@ name: Déployer la démo
 
 on:
   push:
-    branches: [claude/saas-nursing-jobs-concept-60zgzx, main]
+    branches: [main]
   workflow_dispatch:
 
 permissions:
