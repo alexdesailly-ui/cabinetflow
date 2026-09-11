@@ -49,7 +49,7 @@ function Shell() {
   if (moi && (route.name === 'landing')) { go({ name: 'home' }); return null }
 
   return (
-    <div className="shell">
+    <div className={`shell ${moi ? 'app' : ''}`}>
       <header className="topbar">
         <div className="topbar-in">
           <a className="brand" href="#/" onClick={ev => { ev.preventDefault(); go({ name: moi ? 'home' : 'landing' }) }}><span className="brand-mark">R</span>Relève</a>
@@ -128,7 +128,7 @@ function Compte({ moi }: { moi: Account }) {
   const nbAvis = lireAvis().length
   return (
     <div className="stack-l">
-      <div className="card row"><Avatar prenom={moi.prenom} nom={moi.nom} lg encre /><div className="grow"><h1 style={{ fontSize: '1.4rem' }}>{moi.prenom} {moi.nom}</h1><div className="small muted">{moi.nomCabinet ?? 'Remplaçant·e'} · {moi.ville}</div><div className="small muted">Membre depuis le {formatDate(moi.creeLe)}</div></div></div>
+      <div className="page-head"><div className="row"><Avatar prenom={moi.prenom} nom={moi.nom} lg encre /><div><h1>{moi.prenom} {moi.nom}</h1><div className="sub">{moi.nomCabinet ?? 'Remplaçant·e'} · {moi.ville} · membre depuis le {formatDate(moi.creeLe)}</div></div></div><Btn variant="ghost" icon={Ic.logout} onClick={() => { seDeconnecter(); go({ name: 'landing' }) }}>Se déconnecter</Btn></div>
       {moi.role === 'cabinet' && (
         <div className="card stack">
           <div className="between"><h3>Abonnement</h3><Pill tone="accent">{moi.plan === 'essai' ? 'Essai' : 'Cabinet'}</Pill></div>
@@ -159,7 +159,6 @@ function Compte({ moi }: { moi: Account }) {
           <Btn variant="danger" size="sm" onClick={() => { if (confirm('Effacer toutes les données locales et régénérer la démonstration ?')) { reinitialiser(); semerDemo(); reinitialiserReperes(); go({ name: 'landing' }) } }}>Réinitialiser la démonstration</Btn>
         </div>
       </div>
-      <Btn variant="ghost" icon={Ic.logout} onClick={() => { seDeconnecter(); go({ name: 'landing' }) }}>Se déconnecter</Btn>
       <p className="tiny muted">Relève — version pilote. Données stockées uniquement dans ce navigateur. Aucune donnée réelle de patient ne doit être saisie. Les montants sont des estimations, pas un calcul fiscal. {BADGES.length} badges, {e.accounts.length} comptes en local.</p>
     </div>
   )

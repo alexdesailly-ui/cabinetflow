@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Avatar, Bar, Btn, Field, Ic, Modal, Pill, Pouls, QR, Repere, useCountUp, useToast } from '../components/ui'
+import { Avatar, Bar, Btn, Field, Ic, Modal, PageHeader, Pill, Pouls, QR, Repere, useCountUp, useToast } from '../components/ui'
 import { inviter, simulerActivationFilleul } from '../lib/actions'
 import { PLAFOND_MOIS_OFFERTS_PAR_AN, formatDate, lienParrainage } from '../lib/domain'
 import { fiabilite, pouls } from '../lib/gamification'
@@ -50,15 +50,12 @@ export function Parrainage({ moi }: { moi: Account }) {
 
   return (
     <div className="stack-l">
-      <div>
-        <p className="eyebrow">Cercle</p>
-        <h1>Les gens avec qui vous travaillez</h1>
-      </div>
+      <PageHeader title="Cercle" sub="Les gens avec qui vous travaillez, et votre fiabilité" />
       <Repere k="parrainage">Un confrère invité et vous gagnez chacun un mois. Rien de plus : ici, on progresse en faisant bien, pas en recrutant.</Repere>
 
       <div className="card stack">
         <div className="between">
-          <div className="display num" style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--encre)' }}>{nbCercle} <span className="small muted" style={{ fontFamily: 'var(--corps)', fontWeight: 500 }}>personne{cercle.length > 1 ? 's' : ''} dans votre cercle</span></div>
+          <div className="display num" style={{ fontSize: '1.6rem', fontWeight: 700 }}>{nbCercle} <span className="small muted" style={{ fontWeight: 500 }}>personne{cercle.length > 1 ? 's' : ''} dans votre cercle</span></div>
           <div className="cercle-avatars">{cercle.slice(0, 6).map(a => <Avatar key={a.id} prenom={a.prenom} nom={a.nom} encre={a.role === 'cabinet'} />)}</div>
         </div>
         <p className="small muted">Un cercle se construit par les contrats signés et les confrères invités. Les remplaçants recommandés par votre cercle apparaissent en premier dans votre vivier.</p>
@@ -100,7 +97,7 @@ export function Parrainage({ moi }: { moi: Account }) {
 
       <section className="stack">
         <div className="section-title"><h2 className="vivant">Dans le {moi.departement}</h2><span className="small muted">{evenements.filter(x => Date.now() - new Date(x.le).getTime() < 7 * 86_400_000).length} cette semaine</span></div>
-        <div className="card"><Pouls evenements={evenements} max={6} /></div>
+        <div className="card pad-0"><Pouls evenements={evenements} max={6} /></div>
       </section>
 
       <Modal open={modal === 'qr'} onClose={() => setModal(null)} title="À scanner">
@@ -132,7 +129,7 @@ export function FiabiliteBloc({ moi, compact }: { moi: Account; compact?: boolea
   return (
     <div className="card stack">
       <div className="between">
-        <div><p className="eyebrow">Fiabilité</p><h3>{f.niveau}{f.score !== null && <span className="muted num" style={{ fontWeight: 500, fontSize: '1rem', fontFamily: 'var(--corps)' }}> · {score} / 100</span>}</h3></div>
+        <div><p className="eyebrow">Fiabilité</p><h3>{f.niveau}{f.score !== null && <span className="muted num" style={{ fontWeight: 500 }}> · {score} / 100</span>}</h3></div>
         {compact ? <Pill tone={tone} icon={Ic.shield}>{f.niveau}</Pill> : <span className={`pill ${tone}`} style={{ whiteSpace: 'normal' }}><Ic.shield />{f.avantage}</span>}
       </div>
       {compact && <p className="tiny muted">{f.avantage}</p>}

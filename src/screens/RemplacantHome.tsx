@@ -1,11 +1,11 @@
-import { Btn, Ic, Pill, Pouls, Repere, Ring, useCountUp } from '../components/ui'
+import { Btn, Ic, ListRow, PageHeader, Pill, Pouls, Repere, Ring, useCountUp } from '../components/ui'
 import { PIECES, alerteCDOI, conformite, estimerRetrocession, euros, formatDate, joursEntre, montantLigne } from '../lib/domain'
 import { BADGES, badgesPour, pouls } from '../lib/gamification'
 import { FiabiliteBloc } from './Parrainage'
 import { go } from '../lib/router'
 import { compte, contratsDuRemplacant, recosVers, useStore } from '../lib/store'
 import type { Account } from '../lib/types'
-import { MissionCard } from './CabinetHome'
+import { MissionRow } from './CabinetHome'
 
 export function RemplacantHome({ moi }: { moi: Account }) {
   const e = useStore()
@@ -28,63 +28,60 @@ export function RemplacantHome({ moi }: { moi: Account }) {
 
   return (
     <div className="stack-l">
-      <div className="between"><div><p className="eyebrow">Espace remplaçant</p><h1>Bonjour {moi.prenom}</h1></div><Btn size="sm" variant="encre" onClick={() => go({ name: 'missions' })}>Voir les remplacements</Btn></div>
+      <PageHeader title={`Bonjour ${moi.prenom}`} sub="Remplaçant·e" action={<Btn icon={Ic.briefcase} onClick={() => go({ name: 'missions' })}>Voir les remplacements</Btn>} />
       <Repere k="remplacant-home">Votre dossier vous suit de cabinet en cabinet. Complet, il vous place en tête du vivier.</Repere>
 
-      <div className={`card ${conf.verifie ? 'ok' : 'warn'} row`} style={{ cursor: 'pointer' }} onClick={() => go({ name: 'dossier' })}>
-        <Ring value={conf.score} tone={conf.verifie ? 'ok' : conf.score > 50 ? 'warn' : 'danger'} />
-        <div className="grow">
-          <h3>{conf.verifie ? 'Dossier vérifié' : 'Dossier à compléter'}</h3>
-          <p className="small">{conf.verifie ? 'Les cabinets vous voient en premier.' : `${conf.manquantesCritiques.map(k => PIECES[k].label).join(', ')} : sans ça, aucun cabinet ne peut vous retenir.`}</p>
-          {conf.alertes.filter(a => a.etat === 'bientot').map(a => <p key={a.key} className="small" style={{ color: 'var(--ambre)', fontWeight: 600 }}>{PIECES[a.key].label} expire dans {a.jours} jours</p>)}
-        </div>
-        <Ic.chevron className="" />
+      <div className="two-col">
+        <div className="stack-l">
+      <div className="card pad-0 list">
+        <ListRow onClick={() => go({ name: 'dossier' })} leading={<Ring value={conf.score} tone={conf.verifie ? 'ok' : conf.score > 50 ? 'warn' : 'danger'} />}
+          title={conf.verifie ? 'Dossier vérifié' : 'Dossier à compléter'}
+          meta={conf.verifie ? (conf.alertes.filter(a => a.etat === 'bientot').map(a => `${PIECES[a.key].label} expire dans ${a.jours} j`).join(' · ') || 'Les cabinets vous voient en premier.') : `Manque : ${conf.manquantesCritiques.map(k => PIECES[k].label).join(', ')}`}
+          trailing={conf.verifie ? <Pill tone="ok" icon={Ic.shield}>Vérifié</Pill> : <Pill tone="warn">{conf.score} %</Pill>} />
       </div>
 
       {(enAttente.length > 0 || dues.length > 0 || candidatures.length > 0) && (
         <section>
           <div className="section-title"><h2>À faire</h2></div>
-          <div className="list card" style={{ paddingTop: 4, paddingBottom: 4 }}>
-            {enAttente.map(c => { const m = e.missions.find(x => x.id === c.missionId)!; const cab = compte(e, c.cabinetId)!; return <div key={c.id} className="item tap" onClick={() => go({ name: 'mission', id: m.id })}><span className="pill warn" style={{ width: 10, height: 10, padding: 0 }} /><div className="grow"><div style={{ fontWeight: 600 }}>Contrat à signer — {cab.nomCabinet}</div><div className="small muted">{formatDate(m.du)} → {formatDate(m.au)} · {c.retrocessionPct} %</div></div><Ic.chevron className="" /></div> })}
-            {dues.map(l => { const c = e.contrats.find(x => x.id === l.contratId)!; const m = e.missions.find(x => x.id === c.missionId)!; const retard = joursEntre(l.echeance, new Date()); return <div key={l.id} className="item tap" onClick={() => go({ name: 'mission', id: m.id })}><span className={`pill ${retard > 0 ? 'danger' : 'accent'}`} style={{ width: 10, height: 10, padding: 0 }} /><div className="grow"><div style={{ fontWeight: 600 }}>{euros(montantLigne(l))} {retard > 0 ? `en retard de ${retard} j` : `attendus le ${formatDate(l.echeance)}`}</div><div className="small muted">{l.libelle} · {compte(e, c.cabinetId)?.nomCabinet}</div></div><Ic.chevron className="" /></div> })}
-            {candidatures.map(cd => { const m = e.missions.find(x => x.id === cd.missionId)!; return <div key={cd.id} className="item tap" onClick={() => go({ name: 'mission', id: m.id })}><span className="pill neutral" style={{ width: 10, height: 10, padding: 0 }} /><div className="grow"><div style={{ fontWeight: 600 }}>Candidature en attente</div><div className="small muted">{compte(e, m.cabinetId)?.nomCabinet} · {formatDate(m.du)}</div></div><Ic.chevron className="" /></div> })}
+          <div className="card pad-0 list">
+            {enAttente.map(c => { const m = e.missions.find(x => x.id === c.missionId)!; const cab = compte(e, c.cabinetId)!; return <ListRow key={c.id} onClick={() => go({ name: 'mission', id: m.id, onglet: 'contrat' })} leading={<span className="status-dot warn" />} title={`Contrat à signer · ${cab.nomCabinet}`} meta={`${formatDate(m.du)} → ${formatDate(m.au)} · ${c.retrocessionPct} %`} /> })}
+            {dues.map(l => { const c = e.contrats.find(x => x.id === l.contratId)!; const m = e.missions.find(x => x.id === c.missionId)!; const retard = joursEntre(l.echeance, new Date()); return <ListRow key={l.id} onClick={() => go({ name: 'mission', id: m.id, onglet: 'retrocession' })} leading={<span className={`status-dot ${retard > 0 ? 'danger' : 'info'}`} />} title={`${euros(montantLigne(l))} ${retard > 0 ? `en retard de ${retard} j` : `attendus le ${formatDate(l.echeance)}`}`} meta={`${l.libelle} · ${compte(e, c.cabinetId)?.nomCabinet}`} /> })}
+            {candidatures.map(cd => { const m = e.missions.find(x => x.id === cd.missionId)!; return <ListRow key={cd.id} onClick={() => go({ name: 'mission', id: m.id })} leading={<span className="status-dot neutral" />} title="Candidature en attente" meta={`${compte(e, m.cabinetId)?.nomCabinet} · ${formatDate(m.du)}`} /> })}
           </div>
         </section>
       )}
 
-      <section className="grid-2">
-        <div className="tile"><span className="k">Rétrocessions perçues</span><span className="v num">{euros(gagneAnime)}</span><span className="s">via Relève</span></div>
-        <div className="tile"><span className="k">Recommandations</span><span className="v num">{recos.length}</span><span className="s">vérifiées par contrat</span></div>
-      </section>
-
-      {aVenir.length > 0 && <section><div className="section-title"><h2>Mes prochains remplacements</h2></div><div className="stack">{aVenir.map(x => <MissionCard key={x.mission.id} m={x.mission} />)}</div></section>}
+      {aVenir.length > 0 && <section><div className="section-title"><h2>Mes prochains remplacements</h2></div><div className="card pad-0 list">{aVenir.map(x => <MissionRow key={x.mission.id} m={x.mission} />)}</div></section>}
 
       {suggestions.length > 0 && (
         <section>
           <div className="section-title"><h2>Pour vous</h2><button className="linkbtn small" onClick={() => go({ name: 'missions' })}>Tout voir</button></div>
-          <div className="stack">
+          <div className="card pad-0 list">
             {suggestions.map(({ m, cab, score }) => { const est = estimerRetrocession(m); return (
-              <div key={m.id} className="card tap stack" onClick={() => go({ name: 'mission', id: m.id })} style={{ cursor: 'pointer' }}>
-                <div className="between"><div><strong>{cab.nomCabinet}</strong> <span className="small muted">· {cab.ville}</span></div>{score >= 4 && <Pill tone="ok" icon={Ic.sparkle}>Bon match</Pill>}</div>
-                <div className="small">{m.motif} · {formatDate(m.du)} → {formatDate(m.au)} · {m.joursTravailles} j</div>
-                <div className="row small"><strong className="num">≈ {euros(est.netEstimeRemplacant)} net</strong><span className="muted">· {m.retrocessionPct} %{m.logementFourni ? ' · logement' : ''}{m.vehiculeFourni ? ' · véhicule' : ''}</span></div>
-              </div>) })}
+              <ListRow key={m.id} onClick={() => go({ name: 'mission', id: m.id })} leading={<span className="avatar encre">{cab.nomCabinet?.[0] ?? cab.nom[0]}</span>}
+                title={<>{cab.nomCabinet} <span className="muted" style={{ fontWeight: 400 }}>· {cab.ville}</span></>}
+                meta={`${m.motif} · ${formatDate(m.du)} → ${formatDate(m.au)} · ≈ ${euros(est.netEstimeRemplacant)} net${m.logementFourni ? ' · logement' : ''}`}
+                trailing={score >= 4 ? <Pill tone="ok" icon={Ic.sparkle}>Bon match</Pill> : undefined} />) })}
           </div>
         </section>
       )}
-
-      <section className="grid-2">
-        <div onClick={() => go({ name: 'parrainage' })} style={{ cursor: 'pointer' }}><FiabiliteBloc moi={moi} compact /></div>
-        <div className="card stack">
-          <p className="eyebrow">Badges</p>
-          <div className="row">{mesBadges.length === 0 ? <span className="small muted">Complétez votre dossier pour le premier.</span> : mesBadges.map(b => <span key={b.key} title={BADGES.find(x => x.key === b.key)?.description} style={{ fontSize: '1.6rem' }}>{BADGES.find(x => x.key === b.key)?.emoji}</span>)}</div>
-          <p className="tiny muted">{mesBadges.length} / {badgesPour(moi).length}</p>
         </div>
-      </section>
-      <section className="stack">
-        <div className="section-title"><h2 className="vivant">Dans le {moi.departement}</h2></div>
-        <div className="card"><Pouls evenements={evenements} max={4} /></div>
-      </section>
+        <aside className="stack">
+          <div className="grid-2">
+            <div className="tile"><span className="k">Rétrocessions perçues</span><span className="v num">{euros(gagneAnime)}</span></div>
+            <div className="tile"><span className="k">Recommandations</span><span className="v num">{recos.length}</span></div>
+          </div>
+          <div onClick={() => go({ name: 'parrainage' })} style={{ cursor: 'pointer' }}><FiabiliteBloc moi={moi} compact /></div>
+          <div className="card stack">
+            <p className="eyebrow">Badges · {mesBadges.length} / {badgesPour(moi).length}</p>
+            <div className="row">{mesBadges.length === 0 ? <span className="small muted">Complétez votre dossier pour le premier.</span> : mesBadges.map(b => <span key={b.key} title={BADGES.find(x => x.key === b.key)?.description} style={{ fontSize: '1.4rem' }}>{BADGES.find(x => x.key === b.key)?.emoji}</span>)}</div>
+          </div>
+          <section>
+            <div className="section-title"><h2 className="vivant">Dans le {moi.departement}</h2></div>
+            <div className="card pad-0"><Pouls evenements={evenements} max={4} /></div>
+          </section>
+        </aside>
+      </div>
     </div>
   )
 }
@@ -94,20 +91,18 @@ export function Missions({ moi }: { moi: Account }) {
   const e = useStore()
   if (moi.role === 'cabinet') {
     const mes = e.missions.filter(m => m.cabinetId === moi.id).sort((a, b) => b.du.localeCompare(a.du))
-    return <div className="stack-l"><div className="between"><h1>Mes remplacements</h1><Btn size="sm" variant="encre" icon={Ic.plus} onClick={() => go({ name: 'mission-new' })}>Nouveau</Btn></div><div className="stack">{mes.map(m => <MissionCard key={m.id} m={m} />)}</div></div>
+    return <div className="stack-l"><PageHeader title="Mes remplacements" sub={`${mes.length} au total`} action={<Btn icon={Ic.plus} onClick={() => go({ name: 'mission-new' })}>Nouveau</Btn>} /><div className="card pad-0 list">{mes.map(m => <MissionRow key={m.id} m={m} />)}</div></div>
   }
   const ouvertes = e.missions.filter(m => m.statut === 'publiee').map(m => ({ m, cab: compte(e, m.cabinetId)! })).sort((a, b) => (a.cab.departement === moi.departement ? 0 : 1) - (b.cab.departement === moi.departement ? 0 : 1) || a.m.du.localeCompare(b.m.du))
   return (
     <div className="stack-l">
-      <div><p className="eyebrow">Remplacements ouverts</p><h1>Près de chez vous</h1></div>
-      <div className="stack">
-        {ouvertes.map(({ m, cab }) => { const est = estimerRetrocession(m); const cand = e.candidatures.find(c => c.missionId === m.id && c.remplacantId === moi.id); return (
-          <div key={m.id} className="card tap stack" onClick={() => go({ name: 'mission', id: m.id })} style={{ cursor: 'pointer' }}>
-            <div className="between"><div><strong>{cab.nomCabinet}</strong> <span className="small muted">· {cab.ville} ({cab.departement})</span></div>{cand ? <Pill tone={cand.statut === 'retenue' ? 'ok' : 'accent'}>{cand.statut === 'retenue' ? 'Retenu·e' : 'Candidature envoyée'}</Pill> : joursEntre(new Date(), m.publieeLe!) <= 2 ? <Pill tone="warn">Nouveau</Pill> : null}</div>
-            <div className="small">{m.motif} · {formatDate(m.du)} → {formatDate(m.au)} · {m.joursTravailles} j · {m.patientsJour} patients/j</div>
-            <div className="row small"><strong className="num">≈ {euros(est.netEstimeRemplacant)} net</strong><span className="muted">· {euros(est.brutRemplacant)} rétrocédés ({m.retrocessionPct} %){m.logementFourni ? ' · logement' : ''}{m.vehiculeFourni ? ' · véhicule' : ''}</span></div>
-            {m.soinsRequis.length > 0 && <div className="row">{m.soinsRequis.map(s => <Pill key={s} tone={(moi.soinsMaitrises ?? []).includes(s) ? 'ok' : 'neutral'}>{s}</Pill>)}</div>}
-          </div>) })}
+      <PageHeader title="Remplacements ouverts" sub={`${ouvertes.length} près de chez vous`} />
+      <div className="card pad-0 list">
+        {ouvertes.map(({ m, cab }) => { const est = estimerRetrocession(m); const cand = e.candidatures.find(c => c.missionId === m.id && c.remplacantId === moi.id); const manque = m.soinsRequis.filter(s => !(moi.soinsMaitrises ?? []).includes(s)).length; return (
+          <ListRow key={m.id} onClick={() => go({ name: 'mission', id: m.id })} leading={<span className="avatar encre">{cab.nomCabinet?.[0] ?? cab.nom[0]}</span>}
+            title={<>{cab.nomCabinet} <span className="muted" style={{ fontWeight: 400 }}>· {cab.ville} ({cab.departement})</span></>}
+            meta={`${m.motif} · ${formatDate(m.du)} → ${formatDate(m.au)} · ${m.joursTravailles} j · ≈ ${euros(est.netEstimeRemplacant)} net (${m.retrocessionPct} %)${m.logementFourni ? ' · logement' : ''}${m.vehiculeFourni ? ' · véhicule' : ''}${manque ? ` · ${manque} soin${manque > 1 ? 's' : ''} non déclaré${manque > 1 ? 's' : ''}` : ''}`}
+            trailing={cand ? <Pill tone={cand.statut === 'retenue' ? 'ok' : 'accent'}>{cand.statut === 'retenue' ? 'Retenu·e' : 'Candidature envoyée'}</Pill> : joursEntre(new Date(), m.publieeLe!) <= 2 ? <Pill tone="warn">Nouveau</Pill> : undefined} />) })}
       </div>
     </div>
   )
@@ -119,8 +114,7 @@ export function Dossier({ moi }: { moi: Account }) {
   return (
     <div className="stack-l">
       <Repere k="dossier">Le bouclier marque les pièces sans lesquelles aucun contrat ne peut être signé. Chaque échéance est surveillée.</Repere>
-      <div><p className="eyebrow">Dossier de confiance</p><h1>Vos pièces</h1><p className="small muted" style={{ marginTop: 6 }}>Chaque pièce a une échéance. Relève vous prévient 60 jours avant, et empêche qu’un contrat soit signé si une pièce expire avant la fin du remplacement.</p></div>
-      <div className="card row"><Ring value={conf.score} tone={conf.verifie ? 'ok' : conf.score > 50 ? 'warn' : 'danger'} /><div className="grow"><h3>{conf.verifie ? 'Dossier vérifié' : `${conf.score} % complet`}</h3><p className="small muted">{conf.verifie ? 'Vous apparaissez en tête du vivier.' : 'Les pièces critiques sont marquées d’un bouclier.'}</p></div></div>
+      <PageHeader title="Dossier de confiance" sub="Alerte 60 jours avant chaque échéance. Une pièce qui expire avant la fin d’un remplacement bloque la signature." action={<div className="row"><Ring value={conf.score} tone={conf.verifie ? 'ok' : conf.score > 50 ? 'warn' : 'danger'} />{conf.verifie ? <Pill tone="ok" icon={Ic.shield}>Vérifié</Pill> : <Pill tone="warn">{conf.score} %</Pill>}</div>} />
       <DossierForm moi={moi} />
       {e.contrats.filter(c => c.remplacantId === moi.id && c.signatureRemplacant).map(c => { const m = e.missions.find(x => x.id === c.missionId)!; const a = alerteCDOI(c, m); return a && a.gravite !== 'info' ? <div key={c.id} className="card warn small"><strong>{a.titre}</strong> — {compte(e, c.cabinetId)?.nomCabinet}. Rappelez-le gentiment au cabinet.</div> : null })}
     </div>

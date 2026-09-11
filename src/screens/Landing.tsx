@@ -13,28 +13,14 @@ export function Landing() {
     <div className="stack-l">
       <section className="hero">
         <Pill tone="accent" icon={Ic.shield}>Pensé pour les cabinets infirmiers libéraux</Pill>
-        <h1>Partez en congés. <em>Votre tournée est entre de bonnes mains.</em></h1>
-        <p className="lead">
-          Relève trouve, vérifie et contractualise votre remplaçant — puis suit la passation et la rétrocession.
-          Tout ce qu’un site d’annonces ne fait pas.
-        </p>
+        <h1>Trouvez, vérifiez et contractualisez votre remplaçant.</h1>
+        <p className="lead">Dossier vérifié, rétrocession calculée, contrat conforme transmis à l’Ordre, passation de tournée. Pour les cabinets infirmiers libéraux.</p>
         <div className="row">
           <Btn variant="encre" onClick={() => go({ name: 'onboarding', role: 'cabinet' })}>Je suis titulaire <Ic.chevron /></Btn>
           <Btn variant="ghost" onClick={() => go({ name: 'onboarding', role: 'remplacant' })}>Je suis remplaçant·e</Btn>
         </div>
         {demoOk && (
-          <div className="card accent">
-            <div className="between">
-              <div>
-                <div style={{ fontWeight: 700 }}>Essayer sans créer de compte</div>
-                <div className="small muted">Un cabinet fictif à Angers, avec un remplacement d’été en cours.</div>
-              </div>
-              <div className="row">
-                <Btn size="sm" onClick={() => essayer(DEMO_CABINET)}>Côté cabinet</Btn>
-                <Btn size="sm" variant="ghost" onClick={() => essayer(DEMO_REMPLACANT)}>Côté remplaçant</Btn>
-              </div>
-            </div>
-          </div>
+          <div className="banner"><Ic.sparkle /><div className="grow"><div className="b-title">Essayer sans compte</div><div className="b-text">Un cabinet fictif à Angers, un remplacement d’octobre en cours.</div></div><Btn size="sm" onClick={() => essayer(DEMO_CABINET)}>Côté cabinet</Btn><Btn size="sm" variant="ghost" onClick={() => essayer(DEMO_REMPLACANT)}>Côté remplaçant</Btn></div>
         )}
       </section>
 
@@ -47,7 +33,7 @@ export function Landing() {
 
       <section className="stack">
         <p className="eyebrow">Ce que Relève fait à votre place</p>
-        <div className="card stack">
+        <div className="card" style={{ paddingTop: 4, paddingBottom: 4 }}>
           <Feature icon={Ic.shield} titre="Un remplaçant vérifié, pas un inconnu de Facebook"
             texte="Autorisation de remplacement, inscription à l’Ordre, RCP, URSSAF : chaque pièce a une échéance, Relève alerte avant qu’elle n’expire — et bloque si elle expire avant la fin de votre remplacement." />
           <Feature icon={Ic.euro} titre="La rétrocession calculée avant de discuter"
@@ -61,7 +47,7 @@ export function Landing() {
         </div>
       </section>
 
-      <section className="card encre stack">
+      <section className="card accent stack">
         <h3>Inviter un confrère : un mois offert pour chacun</h3>
         <p className="muted">Ni paliers ni classement. Ce qui donne l’accès prioritaire aux remplaçants, c’est la fiabilité : contrat transmis à temps, rétrocession réglée à l’heure, passation soignée.</p>
       </section>
@@ -69,12 +55,12 @@ export function Landing() {
       <section className="grid-2">
         <div className="card">
           <p className="eyebrow">Cabinet</p>
-          <div className="display" style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--encre)' }}>29 € <span className="small muted" style={{ fontFamily: 'var(--corps)', fontWeight: 500 }}>/ mois</span></div>
+          <div className="display" style={{ fontSize: '1.8rem', fontWeight: 700 }}>29 € <span className="small muted" style={{ fontWeight: 500 }}>/ mois</span></div>
           <p className="small muted">Premier mois offert. Sans engagement. Moins qu’une demi-journée de tournée.</p>
         </div>
         <div className="card">
           <p className="eyebrow">Remplaçant</p>
-          <div className="display" style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--encre)' }}>Gratuit</div>
+          <div className="display" style={{ fontSize: '1.8rem', fontWeight: 700 }}>Gratuit</div>
           <p className="small muted">Toujours. Votre dossier vérifié vous suit de cabinet en cabinet.</p>
         </div>
       </section>
@@ -110,10 +96,10 @@ export function Invite({ code, nom }: { code: string; nom?: string }) {
           {cabinet ? `${cabinet} utilise Relève pour se faire remplacer sereinement.` : 'Un confrère utilise Relève pour se faire remplacer sereinement.'}{' '}
           En rejoignant avec cette invitation, vous démarrez avec <strong>un mois offert</strong> et votre dossier est vérifié en priorité.
         </p>
-        <div className="card ok stack">
-          <div className="row"><Ic.check /><strong>1 mois offert</strong> <span className="muted">pour vous, et pour {parrain?.prenom ?? 'votre parrain'}</span></div>
-          <div className="row"><Ic.check /><strong>Vérification prioritaire</strong> <span className="muted">de votre dossier sous 24 h</span></div>
-          <div className="row"><Ic.check /><strong>Cercle de confiance</strong> <span className="muted">vous rejoignez le réseau de {parrain?.prenom ?? 'votre parrain'}</span></div>
+        <div className="card pad-0 list">
+          <div className="item"><Ic.check style={{ color: 'var(--ok)' }} /><div className="grow"><div className="t">1 mois offert</div><div className="m">pour vous, et pour {parrain?.prenom ?? 'votre parrain'}</div></div></div>
+          <div className="item"><Ic.check style={{ color: 'var(--ok)' }} /><div className="grow"><div className="t">Vérification prioritaire</div><div className="m">de votre dossier sous 24 h</div></div></div>
+          <div className="item"><Ic.check style={{ color: 'var(--ok)' }} /><div className="grow"><div className="t">Cercle de confiance</div><div className="m">vous rejoignez le réseau de {parrain?.prenom ?? 'votre parrain'}</div></div></div>
         </div>
         <div className="row">
           <Btn variant="encre" onClick={() => go({ name: 'onboarding', role: 'cabinet', parrain: code })}>Je suis titulaire <Ic.chevron /></Btn>

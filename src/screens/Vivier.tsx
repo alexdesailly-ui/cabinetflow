@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Avatar, Bar, Btn, Field, Ic, Pill, Repere, Ring, useToast } from '../components/ui'
+import { Avatar, Bar, Btn, Field, Ic, ListRow, PageHeader, Pill, Repere, Ring, useToast } from '../components/ui'
 import { inviter } from '../lib/actions'
 import { PIECES, conformite, etatPiece, formatDate } from '../lib/domain'
 import { fiabilite } from '../lib/gamification'
@@ -27,27 +27,15 @@ export function Vivier({ moi }: { moi: Account }) {
 
   return (
     <div className="stack-l">
-      <div>
-        <p className="eyebrow">Vivier · {moi.departement}</p>
-        <h1>Remplaçants du secteur</h1>
-        <p className="muted small" style={{ marginTop: 6 }}>Triés par confiance : dossier, recommandations vérifiées, proximité avec votre cercle.</p>
-      </div>
+      <PageHeader title="Vivier" sub={`${remplacants.length} remplaçant${remplacants.length > 1 ? 's' : ''} · département ${moi.departement}`}
+        action={<div className="segment" role="tablist">{(['tous', 'verifies', 'recommandes'] as const).map(k => <button key={k} role="tab" aria-selected={filtre === k} className={filtre === k ? 'on' : ''} onClick={() => setFiltre(k)}>{k === 'tous' ? 'Tous' : k === 'verifies' ? 'Vérifiés' : 'Recommandés'}</button>)}</div>} />
       <Repere k="vivier">Triés par confiance : dossier, recommandations vérifiées, proximité avec votre cercle. {fiab.niveau === 'Référence' ? 'Vous voyez les nouveaux inscrits 24 h avant les autres.' : 'Les cabinets « Référence » voient les nouveaux inscrits 24 h avant les autres.'}</Repere>
-      <div className="tabs" role="tablist">
-        {(['tous', 'verifies', 'recommandes'] as const).map(k => <button key={k} role="tab" aria-selected={filtre === k} className={filtre === k ? 'on' : ''} onClick={() => setFiltre(k)}>{k === 'tous' ? 'Tous' : k === 'verifies' ? 'Dossier vérifié' : 'Recommandés'}</button>)}
-      </div>
-      <div className="stack">
+      <div className="card pad-0 list">
         {remplacants.map(({ r, conf, recos, dansMonCercle }) => (
-          <div key={r.id} className="card tap row" onClick={() => go({ name: 'remplacant', id: r.id })} style={{ cursor: 'pointer', alignItems: 'flex-start' }}>
-            <Avatar prenom={r.prenom} nom={r.nom} />
-            <div className="grow stack" style={{ gap: 4 }}>
-              <div className="row" style={{ gap: 6 }}><strong>{r.prenom} {r.nom}</strong>{conf.verifie ? <Pill tone="ok" icon={Ic.shield}>Vérifié</Pill> : <Pill tone="warn">Dossier {conf.score} %</Pill>}{dansMonCercle && <Pill tone="accent" icon={Ic.users}>Votre cercle</Pill>}</div>
-              <div className="small muted">{r.ville} · {r.rayonKm} km · {r.anneesExperience} an{(r.anneesExperience ?? 0) > 1 ? 's' : ''} · {r.vehicule ? 'véhiculé·e' : 'sans véhicule'}</div>
-              <div className="small">{recos.length > 0 ? <span style={{ color: 'var(--ambre)' }}>{'★'.repeat(Math.round(recos.reduce((s, x) => s + x.note, 0) / recos.length))}</span> : null} {recos.length} recommandation{recos.length > 1 ? 's' : ''} vérifiée{recos.length > 1 ? 's' : ''}</div>
-              {(r.disponibilites?.length ?? 0) > 0 && <div className="tiny muted">Dispo {r.disponibilites!.map(d => `${formatDate(d.du)} → ${formatDate(d.au)}`).join(' · ')}</div>}
-            </div>
-            <Ic.chevron className="" />
-          </div>
+          <ListRow key={r.id} onClick={() => go({ name: 'remplacant', id: r.id })} leading={<Avatar prenom={r.prenom} nom={r.nom} />}
+            title={<span className="row" style={{ gap: 6 }}>{r.prenom} {r.nom}{dansMonCercle && <Pill tone="accent" icon={Ic.users}>Votre cercle</Pill>}</span>}
+            meta={`${r.ville} · ${r.rayonKm} km · ${r.anneesExperience} an${(r.anneesExperience ?? 0) > 1 ? 's' : ''} · ${recos.length} reco${recos.length > 1 ? 's' : ''}${(r.disponibilites?.length ?? 0) > 0 ? ` · dispo ${formatDate(r.disponibilites![0].du)} → ${formatDate(r.disponibilites![0].au)}` : ''}`}
+            trailing={conf.verifie ? <Pill tone="ok" icon={Ic.shield}>Vérifié</Pill> : <Pill tone="warn">{conf.score} %</Pill>} />
         ))}
       </div>
       <div className="card stack">
@@ -70,12 +58,10 @@ export function RemplacantProfil({ id, moi }: { id: string; moi: Account }) {
   const missionsOuvertes = e.missions.filter(m => m.cabinetId === moi.id && m.statut === 'publiee')
   return (
     <div className="stack-l">
-      <button className="linkbtn small row" onClick={() => history.back()}><Ic.back className="" /> Retour</button>
-      <div className="card stack">
-        <div className="row"><Avatar prenom={r.prenom} nom={r.nom} lg encre /><div className="grow"><h1 style={{ fontSize: '1.5rem' }}>{r.prenom} {r.nom}</h1><div className="small muted">{r.ville} ({r.codePostal}) · rayon {r.rayonKm} km · {r.anneesExperience} ans d’expérience · {r.vehicule ? 'véhiculé·e' : 'sans véhicule'}</div></div></div>
-        <div className="row">{(r.soinsMaitrises ?? []).map(s => <Pill key={s}>{s}</Pill>)}</div>
-        {moi.role === 'cabinet' && r.telephone && <Btn variant="ghost" icon={Ic.phone} onClick={() => location.assign(`tel:${r.telephone!.replace(/\s/g, '')}`)}>{r.telephone}</Btn>}
-      </div>
+      <PageHeader crumb={{ label: 'Retour', onClick: () => history.back() }} title={<span className="row"><Avatar prenom={r.prenom} nom={r.nom} lg encre />{r.prenom} {r.nom}</span>}
+        sub={`${r.ville} (${r.codePostal}) · rayon ${r.rayonKm} km · ${r.anneesExperience} ans d’expérience · ${r.vehicule ? 'véhiculé·e' : 'sans véhicule'}`}
+        action={moi.role === 'cabinet' && r.telephone ? <Btn variant="ghost" icon={Ic.phone} onClick={() => location.assign(`tel:${r.telephone!.replace(/\s/g, '')}`)}>{r.telephone}</Btn> : undefined} />
+      {(r.soinsMaitrises ?? []).length > 0 && <div className="row">{(r.soinsMaitrises ?? []).map(s => <Pill key={s}>{s}</Pill>)}</div>}
       <div className="card stack">
         <div className="row"><Ring value={conf.score} tone={conf.verifie ? 'ok' : conf.score > 50 ? 'warn' : 'danger'} /><div className="grow"><h3>Dossier de confiance</h3><p className="small muted">{conf.verifie ? 'Toutes les pièces critiques sont valides.' : `${conf.manquantesCritiques.length} pièce${conf.manquantesCritiques.length > 1 ? 's' : ''} critique${conf.manquantesCritiques.length > 1 ? 's' : ''} manquante${conf.manquantesCritiques.length > 1 ? 's' : ''} ou expirée${conf.manquantesCritiques.length > 1 ? 's' : ''}.`}</p></div></div>
         <div className="list">

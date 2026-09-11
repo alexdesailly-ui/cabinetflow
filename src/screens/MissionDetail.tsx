@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Avatar, Btn, Field, Ic, Modal, Pill, Repere, Toggle, useRepere, useToast } from '../components/ui'
+import { Avatar, Banner, Btn, Field, Ic, Modal, PageHeader, Pill, Repere, Toggle, useRepere, useToast } from '../components/ui'
 import { ajouterLigne, candidater, enregistrerFiche, enregistrerMission, majContrat, marquerPayee, publierMission, recommander, retenir, signer, transmettreCDOI } from '../lib/actions'
 import { texteContrat } from '../lib/contrat'
 import { alerteCDOI, conformite, controlerAffectation, estimerRetrocession, euros, formatDate, formatDateCourte, joursEntre, montantLigne } from '../lib/domain'
@@ -29,48 +29,52 @@ export function MissionDetail({ id, moi, ongletInitial }: { id: string; moi: Acc
     { k: 'retrocession', l: 'Rétrocession', dot: !!c && e.lignes.some(l => l.contratId === c.id && !l.payeeLe) },
   ]
 
+  // L'étape suivante, dite une fois, en haut : c'est ce qu'un utilisateur cherche en ouvrant la page.
+  const fiche = e.fiches.some(f => f.missionId === m.id)
+  const signe = !!(c?.signatureTitulaire && c?.signatureRemplacant)
+  const maSig = c && (estCabinet ? c.signatureTitulaire : c.signatureRemplacant)
+  let suivante: { tone: 'info' | 'ok' | 'warn' | 'danger'; titre: string; texte?: string; onglet?: Onglet } | null = null
+  if (m.statut === 'terminee') suivante = { tone: 'ok', titre: 'Remplacement terminé' }
+  else if (m.statut === 'brouillon') suivante = { tone: 'info', titre: 'À publier', texte: `${jours} jours avant le début` }
+  else if (!m.remplacantRetenuId) suivante = estCabinet ? { tone: 'info', titre: 'Choisir un candidat', texte: 'Retenir un candidat prépare le contrat', onglet: 'candidatures' } : { tone: 'info', titre: 'Candidatures ouvertes', onglet: 'candidatures' }
+  else if (c && !maSig) suivante = { tone: 'warn', titre: 'Contrat à signer', texte: 'Signature des deux parties requise', onglet: 'contrat' }
+  else if (c && !signe) suivante = { tone: 'info', titre: 'En attente de l’autre signature', onglet: 'contrat' }
+  else if (c && !c.transmisCDOILe) { const a = alerteCDOI(c, m); suivante = { tone: a?.gravite === 'bloquant' ? 'danger' : 'warn', titre: a?.titre ?? 'À transmettre à l’Ordre', onglet: 'contrat' } }
+  else if (!fiche) suivante = { tone: estCabinet ? 'warn' : 'info', titre: estCabinet ? 'Préparer la fiche de passation' : 'Fiche de passation en préparation', onglet: 'passation' }
+  else if (c && e.lignes.some(l => l.contratId === c.id && !l.payeeLe)) suivante = { tone: 'warn', titre: 'Rétrocession à reverser', onglet: 'retrocession' }
+  else suivante = { tone: 'ok', titre: 'Tout est prêt', texte: `Début dans ${jours} jours` }
+
   return (
     <div className="stack-l">
-      <div className="stack">
-        <button className="linkbtn small row" onClick={() => go({ name: estCabinet ? 'home' : 'missions' })}><Ic.back className="" /> {estCabinet ? 'Tableau de bord' : 'Remplacements'}</button>
-        <div className="between">
-          <div>
-            <p className="eyebrow">{estCabinet ? m.motif : `${cabinet.nomCabinet} · ${cabinet.ville}`}</p>
-            <h1 style={{ fontSize: '1.6rem' }}>{formatDate(m.du)} → {formatDate(m.au)}</h1>
-          </div>
-          {m.statut === 'brouillon' ? <Pill>Brouillon</Pill> : m.statut === 'terminee' ? <Pill>Terminé</Pill> : retenu ? <Pill tone="ok" icon={Ic.check}>Pourvu</Pill> : <Pill tone="accent">Publié</Pill>}
-        </div>
-        <div className="row small muted">
-          <span><Ic.calendar className="" style={{ width: 14, height: 14, verticalAlign: '-2px' }} /> {m.joursTravailles} j dont {m.dimanchesFeries} dim./fériés</span>
-          <span>· {m.patientsJour} patients/j · {m.kmJour} km/j</span>
-          <span>· {m.horaires}</span>
-          {m.vehiculeFourni && <span>· <Ic.car className="" style={{ width: 14, height: 14, verticalAlign: '-2px' }} /> véhicule</span>}
-          {m.logementFourni && <span>· logement</span>}
-        </div>
-        {m.soinsRequis.length > 0 && <div className="row">{m.soinsRequis.map(s => <Pill key={s}>{s}</Pill>)}</div>}
-        {m.commentaire && <p className="quote small">{m.commentaire}</p>}
-      </div>
+      <PageHeader crumb={{ label: estCabinet ? 'Accueil' : 'Remplacements', onClick: () => go({ name: estCabinet ? 'home' : 'missions' }) }}
+        title={`${formatDate(m.du)} → ${formatDate(m.au)}`}
+        sub={estCabinet ? m.motif : `${cabinet.nomCabinet} · ${cabinet.ville}`}
+        action={m.statut === 'brouillon' ? <Pill>Brouillon</Pill> : m.statut === 'terminee' ? <Pill>Terminé</Pill> : retenu ? <Pill tone="ok" icon={Ic.check}>Pourvu</Pill> : <Pill tone="accent">Publié</Pill>} />
 
-      <div className="card accent">
-        <div className="grid-2">
-          <div><div className="display num" style={{ fontSize: '1.6rem', fontWeight: 700, color: 'var(--encre)' }}>{euros(est.brutRemplacant)}</div><div className="small muted">rétrocédés ({m.retrocessionPct} %)</div></div>
-          <div><div className="display num" style={{ fontSize: '1.6rem', fontWeight: 700, color: 'var(--encre)' }}>≈ {euros(est.netEstimeRemplacant)}</div><div className="small muted">net estimé · {euros(est.netParJour)}/jour</div></div>
+      {suivante && <Banner tone={suivante.tone} title={suivante.titre} text={suivante.texte}
+        action={suivante.onglet && suivante.onglet !== onglet ? <Btn size="sm" variant="ghost" onClick={() => setOnglet(suivante!.onglet!)}>Ouvrir</Btn> : estCabinet && m.statut === 'brouillon' ? <Btn size="sm" onClick={() => publierMission(m.id)}>Publier</Btn> : undefined} />}
+
+      <div className="card stack">
+        <div className="facts">
+          <div><div className="k">Jours travaillés</div><div className="v num">{m.joursTravailles} <span className="muted" style={{ fontWeight: 400 }}>dont {m.dimanchesFeries} dim./fériés</span></div></div>
+          <div><div className="k">Tournée</div><div className="v num">{m.patientsJour} patients · {m.kmJour} km / j</div></div>
+          <div><div className="k">Horaires</div><div className="v">{m.horaires}</div></div>
+          <div><div className="k">Rétrocession</div><div className="v num">{m.retrocessionPct} % · {euros(est.brutRemplacant)}</div></div>
+          <div><div className="k">Net estimé remplaçant</div><div className="v num">≈ {euros(est.netEstimeRemplacant)} <span className="muted" style={{ fontWeight: 400 }}>({euros(est.netParJour)} / j)</span></div></div>
+          <div><div className="k">Fourni</div><div className="v">{[m.vehiculeFourni && 'véhicule', m.logementFourni && 'logement'].filter(Boolean).join(', ') || '—'}</div></div>
         </div>
+        {(m.soinsRequis.length > 0 || m.commentaire) && <div className="divider" />}
+        {m.soinsRequis.length > 0 && <div className="row">{m.soinsRequis.map(s => <Pill key={s}>{s}</Pill>)}</div>}
+        {m.commentaire && <p className="small muted">{m.commentaire}</p>}
       </div>
 
       {estCabinet && m.statut === 'publiee' && !m.remplacantRetenuId && (() => {
         const dispo = e.accounts.filter(a => a.role === 'remplacant' && a.departement === cabinet.departement && (a.disponibilites ?? []).some(d => d.du <= m.du && d.au >= m.au)).length
-        return dispo > 0 ? <div className="card ok small vivant"><strong>{dispo} remplaçant{dispo > 1 ? 's' : ''} du secteur {dispo > 1 ? 'sont disponibles' : 'est disponible'} sur ces dates.</strong> <button className="linkbtn small" onClick={() => go({ name: 'vivier' })}>Voir</button></div> : null
+        return dispo > 0 ? <Banner tone="ok" icon={Ic.users} title={`${dispo} remplaçant${dispo > 1 ? 's' : ''} du secteur disponible${dispo > 1 ? 's' : ''} sur ces dates`} action={<Btn size="sm" variant="ghost" onClick={() => go({ name: 'vivier' })}>Voir le vivier</Btn>} /> : null
       })()}
-      {estCabinet && m.statut === 'brouillon' && (
-        <div className="card warn between">
-          <div><strong>Pas encore publié.</strong> <span className="small">{jours} jours d’avance{jours < 30 ? ' — c’est court' : ''}.</span></div>
-          <Btn size="sm" variant="encre" onClick={() => publierMission(m.id)}>Publier maintenant</Btn>
-        </div>
-      )}
 
       <div className="tabs" role="tablist">
-        {onglets.map(o => <button key={o.k} role="tab" aria-selected={onglet === o.k} className={onglet === o.k ? 'on' : ''} onClick={() => setOnglet(o.k)} style={{ position: 'relative' }}>{o.l}{o.dot && <span className="dot" style={{ position: 'absolute', top: 6, right: 8, width: 7, height: 7, borderRadius: 99, background: 'var(--ambre)' }} />}</button>)}
+        {onglets.map(o => <button key={o.k} role="tab" aria-selected={onglet === o.k} className={onglet === o.k ? 'on' : ''} onClick={() => setOnglet(o.k)}>{o.l}{o.dot && <span className="status-dot warn" style={{ display: 'inline-block', marginLeft: 6, verticalAlign: 'middle' }} />}</button>)}
       </div>
 
       {onglet === 'candidatures' && estCabinet && <Repere k="candidatures">Un point rouge empêche la signature. Un point orange se vérifie de vive voix. Retenir un candidat prépare le contrat.</Repere>}
@@ -121,11 +125,7 @@ function Candidatures({ m, moi, estCabinet }: { m: Mission; moi: Account; estCab
   return (
     <div className="stack">
       {cands.length === 0 && (
-        <div className="card stack">
-          <strong>Aucune candidature pour l’instant.</strong>
-          <p className="small muted">Deux leviers qui marchent : inviter directement votre carnet, et parrainer un confrère pour que votre annonce passe en tête de fil.</p>
-          <div className="row"><Btn size="sm" variant="soft" onClick={() => go({ name: 'vivier' })}>Parcourir le vivier</Btn><Btn size="sm" variant="ghost" onClick={() => go({ name: 'parrainage' })}>Parrainer</Btn></div>
-        </div>
+        <div className="card"><div className="empty"><Ic.users /><div style={{ fontWeight: 600, color: 'var(--text)' }}>Aucune candidature pour l’instant</div><div className="small">Invitez votre carnet ou proposez le remplacement depuis le vivier.</div><Btn size="sm" variant="ghost" onClick={() => go({ name: 'vivier' })}>Parcourir le vivier</Btn></div></div>
       )}
       {cands.map(cd => {
         const r = compte(e, cd.remplacantId)!
@@ -147,7 +147,7 @@ function Candidatures({ m, moi, estCabinet }: { m: Mission; moi: Account; estCab
             <p className="small">« {cd.message} »</p>
             <Controles controles={controles} compact />
             {cd.statut === 'envoyee' && !m.remplacantRetenuId && (
-              <span className={!bloquant && pulseRetenir ? 'pulse' : ''} style={{ borderRadius: 999, display: 'inline-flex' }}><Btn size="sm" variant={bloquant ? 'ghost' : 'encre'} disabled={bloquant} onClick={() => setConfirm(r.id)}>{bloquant ? 'Dossier bloquant' : 'Retenir et préparer le contrat'}</Btn></span>
+              <span className={!bloquant && pulseRetenir ? 'pulse' : ''} style={{ display: 'inline-flex', alignSelf: 'flex-start' }}><Btn size="sm" variant={bloquant ? 'ghost' : 'encre'} disabled={bloquant} onClick={() => setConfirm(r.id)}>{bloquant ? 'Dossier bloquant' : 'Retenir et préparer le contrat'}</Btn></span>
             )}
             {cd.statut === 'retenue' && <Pill tone="ok" icon={Ic.check}>Retenu·e</Pill>}
             {cd.statut === 'ecartee' && <Pill>Non retenu·e</Pill>}
@@ -165,16 +165,10 @@ function Candidatures({ m, moi, estCabinet }: { m: Mission; moi: Account; estCab
 }
 
 export function Controles({ controles, compact }: { controles: ReturnType<typeof controlerAffectation>; compact?: boolean }) {
-  if (!controles.length) return compact ? null : <div className="card ok small row"><Ic.check className="" /> Aucun point bloquant : autorisation, RCP et cumul de remplacements sont conformes sur toute la période.</div>
+  if (!controles.length) return compact ? null : <Banner tone="ok" title="Aucun point bloquant" text="Autorisation, RCP et cumul de remplacements conformes sur toute la période." />
   return (
     <div className="stack" style={{ gap: 6 }}>
-      {controles.map((k, i) => (
-        <div key={i} className={`card ${k.gravite === 'bloquant' ? 'danger' : k.gravite === 'attention' ? 'warn' : 'accent'} small`} style={{ padding: compact ? '8px 12px' : undefined }}>
-          <div className="row" style={{ gap: 6 }}><Ic.alert className="" style={{ width: 15, height: 15 }} /><strong>{k.titre}</strong></div>
-          {!compact && <div className="muted">{k.detail}</div>}
-          {compact && <div className="muted tiny">{k.detail}</div>}
-        </div>
-      ))}
+      {controles.map((k, i) => <Banner key={i} tone={k.gravite === 'bloquant' ? 'danger' : k.gravite === 'attention' ? 'warn' : 'info'} title={k.titre} text={k.detail} />)}
     </div>
   )
 }

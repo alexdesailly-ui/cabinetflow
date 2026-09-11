@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Btn, Chips, Field, Ic, Pill, Steps, Toggle } from '../components/ui'
+import { Btn, Chips, Field, Ic, PageHeader, Pill, Stepper, Steps, Toggle } from '../components/ui'
 import { creerCompte } from '../lib/actions'
 import { go } from '../lib/router'
 import { SOINS } from '../lib/seed'
@@ -33,14 +33,10 @@ export function Onboarding({ role, parrain }: { role: Role; parrain?: string }) 
   return (
     <div className="stack-l" style={{ maxWidth: 560 }}>
       <div className="stack">
-        <button className="linkbtn small row" onClick={() => go({ name: 'landing' })}><Ic.back className="" /> Retour</button>
-        <Pill tone="accent">{role === 'cabinet' ? 'Compte cabinet' : 'Compte remplaçant'}</Pill>
-        <h1>{etape === 0 ? 'Faisons connaissance' : role === 'cabinet' ? 'Votre cabinet' : 'Votre exercice'}</h1>
+        <PageHeader crumb={{ label: 'Retour', onClick: () => go({ name: 'landing' }) }} title={etape === 0 ? 'Faisons connaissance' : role === 'cabinet' ? 'Votre cabinet' : 'Votre exercice'} sub={role === 'cabinet' ? 'Compte cabinet' : 'Compte remplaçant'} action={<Pill tone="accent">Étape {etape + 1} / {total}</Pill>} />
         <Steps total={total} done={etape} now={etape} />
         {parrainCompte && (
-          <div className="card ok small">
-            <strong>Invité·e par {parrainCompte.prenom} {parrainCompte.nom}</strong> — votre premier mois est offert et votre dossier sera vérifié en priorité.
-          </div>
+          <div className="banner ok"><Ic.gift /><div className="grow"><div className="b-title">Invité·e par {parrainCompte.prenom} {parrainCompte.nom}</div><div className="b-text">Premier mois offert, dossier vérifié en priorité.</div></div></div>
         )}
       </div>
 
@@ -63,19 +59,21 @@ export function Onboarding({ role, parrain }: { role: Role; parrain?: string }) 
       {etape === 1 && role === 'cabinet' && (
         <div className="card stack">
           <Field label="Nom du cabinet"><input id="ob-cab" className="input" value={f.nomCabinet} onChange={ev => set('nomCabinet', ev.target.value)} placeholder={`Cabinet ${f.nom}`} /></Field>
-          <Field label={`Titulaires : ${f.nbTitulaires}`}><input id="ob-nbt" className="range" type="range" min={1} max={8} value={f.nbTitulaires} onChange={ev => set('nbTitulaires', +ev.target.value)} /></Field>
-          <Field label={`Patients sur une tournée type : ${f.patientsTournee}`}><input id="ob-pat" className="range" type="range" min={8} max={60} value={f.patientsTournee} onChange={ev => set('patientsTournee', +ev.target.value)} /></Field>
-          <Field label={`CA journalier moyen d’une tournée : ${f.caJournalierMoyen} €`} hint="Sert à pré-remplir l’estimation de rétrocession. Modifiable à chaque demande.">
-            <input id="ob-ca" className="range" type="range" min={200} max={900} step={10} value={f.caJournalierMoyen} onChange={ev => set('caJournalierMoyen', +ev.target.value)} />
-          </Field>
+          <div className="grid-2">
+            <Field label="Titulaires"><Stepper id="ob-nbt" value={f.nbTitulaires} min={1} max={12} onChange={v => set('nbTitulaires', v)} /></Field>
+            <Field label="Patients par tournée"><Stepper id="ob-pat" value={f.patientsTournee} min={1} max={80} onChange={v => set('patientsTournee', v)} /></Field>
+          </div>
+          <Field label="CA journalier moyen d’une tournée" hint="Pré-remplit l’estimation de rétrocession. Modifiable à chaque demande."><Stepper id="ob-ca" value={f.caJournalierMoyen} min={100} max={2000} step={10} unit="€" onChange={v => set('caJournalierMoyen', v)} /></Field>
           <Btn block variant="encre" onClick={terminer}>Ouvrir mon espace cabinet <Ic.chevron /></Btn>
         </div>
       )}
 
       {etape === 1 && role === 'remplacant' && (
         <div className="card stack">
-          <Field label={`Rayon de déplacement : ${f.rayonKm} km`}><input id="ob-ray" className="range" type="range" min={5} max={120} step={5} value={f.rayonKm} onChange={ev => set('rayonKm', +ev.target.value)} /></Field>
-          <Field label={`Années d’expérience : ${f.anneesExperience}`}><input id="ob-exp" className="range" type="range" min={0} max={30} value={f.anneesExperience} onChange={ev => set('anneesExperience', +ev.target.value)} /></Field>
+          <div className="grid-2">
+            <Field label="Rayon de déplacement"><Stepper id="ob-ray" value={f.rayonKm} min={5} max={200} step={5} unit="km" onChange={v => set('rayonKm', v)} /></Field>
+            <Field label="Années d’expérience"><Stepper id="ob-exp" value={f.anneesExperience} min={0} max={45} onChange={v => set('anneesExperience', v)} /></Field>
+          </div>
           <Toggle label="Je suis véhiculé·e" value={f.vehicule} onChange={v => set('vehicule', v)} />
           <Field label="Soins que vous maîtrisez" hint="Les cabinets filtrent dessus. Restez honnête : ça se vérifie en passation."><Chips options={SOINS} value={f.soins} onChange={v => set('soins', v)} /></Field>
           <Btn block variant="encre" onClick={terminer}>Ouvrir mon espace <Ic.chevron /></Btn>

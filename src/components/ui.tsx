@@ -53,13 +53,13 @@ export function Pill({ children, tone = 'neutral', icon: Icon }: { children: Rea
 }
 
 export function Ring({ value, tone }: { value: number; tone?: 'ok' | 'warn' | 'danger' }) {
-  const r = 36, c = 2 * Math.PI * r
+  const r = 28, c = 2 * Math.PI * r
   const couleur = tone === 'ok' ? 'var(--vert)' : tone === 'warn' ? 'var(--ambre)' : tone === 'danger' ? 'var(--rouge)' : 'var(--accent)'
   return (
     <div className="ring" role="img" aria-label={`${value} %`}>
-      <svg viewBox="0 0 84 84" width="84" height="84">
-        <circle cx="42" cy="42" r={r} fill="none" stroke="var(--surface-2)" strokeWidth="8" />
-        <circle cx="42" cy="42" r={r} fill="none" stroke={couleur} strokeWidth="8" strokeLinecap="round"
+      <svg viewBox="0 0 64 64" width="64" height="64">
+        <circle cx="32" cy="32" r={r} fill="none" stroke="var(--surface-2)" strokeWidth="6" />
+        <circle cx="32" cy="32" r={r} fill="none" stroke={couleur} strokeWidth="6" strokeLinecap="round"
           strokeDasharray={c} strokeDashoffset={c * (1 - value / 100)} style={{ transition: 'stroke-dashoffset .6s cubic-bezier(.2,.8,.2,1)' }} />
       </svg>
       <div className="val num">{value}</div>
@@ -269,4 +269,62 @@ function relatif(iso: string): string {
   if (j === 1) return 'hier'
   if (j < 30) return `il y a ${j} j`
   return `il y a ${Math.round(j / 30)} mois`
+}
+
+/* Composants de page ------------------------------------------------------ */
+export function PageHeader({ title, sub, crumb, action }: { title: ReactNode; sub?: ReactNode; crumb?: { label: string; onClick: () => void }; action?: ReactNode }) {
+  return (
+    <div className="stack" style={{ gap: 6 }}>
+      {crumb && <button className="crumb" onClick={crumb.onClick}><Ic.back /> {crumb.label}</button>}
+      <div className="page-head">
+        <div><h1>{title}</h1>{sub && <div className="sub">{sub}</div>}</div>
+        {action && <div className="row">{action}</div>}
+      </div>
+    </div>
+  )
+}
+
+export function Banner({ tone = 'info', icon: Icon, title, text, action }: { tone?: 'info' | 'ok' | 'warn' | 'danger' | 'neutral'; icon?: (p: { className?: string }) => JSX.Element; title: ReactNode; text?: ReactNode; action?: ReactNode }) {
+  const I2 = Icon ?? (tone === 'ok' ? Ic.check : tone === 'danger' || tone === 'warn' ? Ic.alert : Ic.info)
+  return (
+    <div className={`banner ${tone === 'neutral' ? '' : tone}`} role="status">
+      <I2 />
+      <div className="grow"><div className="b-title">{title}</div>{text && <div className="b-text">{text}</div>}</div>
+      {action}
+    </div>
+  )
+}
+
+export function Stepper({ id, value, onChange, min = 0, max = 100000, step = 1, unit }: { id: string; value: number; onChange: (v: number) => void; min?: number; max?: number; step?: number; unit?: string }) {
+  const clamp = (v: number) => Math.min(max, Math.max(min, v))
+  return (
+    <div className="stepper">
+      <button type="button" aria-label="Diminuer" onClick={() => onChange(clamp(value - step))}>−</button>
+      <input id={id} type="number" inputMode="numeric" value={value} min={min} max={max} step={step} onChange={ev => onChange(clamp(+ev.target.value || 0))} />
+      {unit && <span className="unit">{unit}</span>}
+      <button type="button" aria-label="Augmenter" onClick={() => onChange(clamp(value + step))}>+</button>
+    </div>
+  )
+}
+
+export function ListRow({ onClick, leading, title, meta, trailing, chevron = true }: { onClick?: () => void; leading?: ReactNode; title: ReactNode; meta?: ReactNode; trailing?: ReactNode; chevron?: boolean }) {
+  return (
+    <div className={`item ${onClick ? 'tap' : ''}`} onClick={onClick} role={onClick ? 'button' : undefined} tabIndex={onClick ? 0 : undefined} onKeyDown={onClick ? e => { if (e.key === 'Enter') onClick() } : undefined}>
+      {leading}
+      <div className="grow"><div className="t">{title}</div>{meta && <div className="m">{meta}</div>}</div>
+      {trailing}
+      {onClick && chevron && <Ic.chevron className="chev" />}
+    </div>
+  )
+}
+
+export function EmptyState({ icon: Icon = Ic.info, title, text, action }: { icon?: (p: { className?: string }) => JSX.Element; title: string; text?: string; action?: ReactNode }) {
+  return (
+    <div className="empty">
+      <Icon />
+      <div style={{ fontWeight: 600, color: 'var(--text)' }}>{title}</div>
+      {text && <div className="small">{text}</div>}
+      {action}
+    </div>
+  )
 }

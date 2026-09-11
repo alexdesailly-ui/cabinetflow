@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Btn, Chips, Field, Ic, Repere, Steps, Toggle, useToast } from '../components/ui'
+import { Btn, Chips, Field, Ic, PageHeader, Repere, Stepper, Steps, Toggle, useToast } from '../components/ui'
 import { enregistrerMission, publierMission } from '../lib/actions'
 import { dansNJours, estimerRetrocession, euros, joursEntre } from '../lib/domain'
 import { go } from '../lib/router'
@@ -48,26 +48,19 @@ export function MissionNew({ moi }: { moi: Account }) {
 
   return (
     <div className="stack-l" style={{ maxWidth: 600 }}>
-      <div className="stack">
-        <button className="linkbtn small row" onClick={() => go({ name: 'home' })}><Ic.back className="" /> Tableau de bord</button>
-        <h1>{['Quand et pourquoi', 'La tournée', 'La rétrocession'][etape]}</h1>
-        <Steps total={3} done={etape} now={etape} />
-      </div>
+      <PageHeader crumb={{ label: 'Accueil', onClick: () => go({ name: 'home' }) }} title={['Quand et pourquoi', 'La tournée', 'La rétrocession'][etape]} sub={`Étape ${etape + 1} sur 3`} />
+      <Steps total={3} done={etape} now={etape} />
       {etape === 0 && <Repere k="mission-new">Trois écrans : les dates, la tournée, la rétrocession. Le remplaçant verra ce qu’il touchera net avant de répondre.</Repere>}
 
       {etape === 0 && (
         <div className="card stack">
-          <Field label="Motif"><Chips options={MOTIFS} value={[f.motif]} onChange={v => set('motif', (v[v.length - 1] as MotifRemplacement) ?? f.motif)} /></Field>
+          <Field label="Motif"><div className="segment" role="radiogroup">{MOTIFS.map(mo => <button key={mo} type="button" role="radio" aria-checked={f.motif === mo} className={f.motif === mo ? 'on' : ''} onClick={() => set('motif', mo)}>{mo}</button>)}</div></Field>
           <div className="grid-2">
             <Field label="Du"><input id="m-du" type="date" className="input" value={f.du} onChange={ev => set('du', ev.target.value)} /></Field>
             <Field label="Au (inclus)"><input id="m-au" type="date" className="input" value={f.au} min={f.du} onChange={ev => set('au', ev.target.value)} /></Field>
           </div>
           <Toggle label="La tournée tourne le dimanche et les fériés" hint="Majorés dans l’estimation." value={f.dimanches} onChange={v => set('dimanches', v)} />
-          <div className={`card ${anticipation >= 45 ? 'ok' : anticipation >= 21 ? 'warn' : 'danger'} small`}>
-            {anticipation >= 45 ? `Publié ${anticipation} jours avant : c’est le bon moment, les remplaçants organisent leur été maintenant.`
-              : anticipation >= 21 ? `${anticipation} jours d’avance : jouable, invitez directement votre carnet dès la publication.`
-              : `${Math.max(0, anticipation)} jours d’avance seulement : Relève poussera votre demande en tête de fil et à vos filleuls d’abord.`}
-          </div>
+          <div className={`banner ${anticipation >= 45 ? 'ok' : anticipation >= 21 ? 'warn' : 'danger'}`}><Ic.calendar /><div className="grow"><div className="b-title">{anticipation >= 45 ? 'Bonne anticipation' : anticipation >= 21 ? 'Délai court' : 'Délai très court'}</div><div className="b-text">{Math.max(0, anticipation)} jours avant le début. {anticipation >= 45 ? 'Les remplaçants organisent leur agenda maintenant.' : anticipation >= 21 ? 'Invitez votre carnet dès la publication.' : 'Votre demande sera mise en avant dans le département.'}</div></div></div>
           <Btn block disabled={jours.total === 0} onClick={() => setEtape(1)}>Continuer · {jours.total} jour{jours.total > 1 ? 's' : ''} travaillé{jours.total > 1 ? 's' : ''} <Ic.chevron /></Btn>
         </div>
       )}
@@ -75,8 +68,8 @@ export function MissionNew({ moi }: { moi: Account }) {
       {etape === 1 && (
         <div className="card stack">
           <div className="grid-2">
-            <Field label={`Patients par jour : ${f.patientsJour}`}><input id="m-pat" type="range" className="range" min={5} max={60} value={f.patientsJour} onChange={ev => set('patientsJour', +ev.target.value)} /></Field>
-            <Field label={`Kilomètres par jour : ${f.kmJour}`}><input id="m-km" type="range" className="range" min={0} max={200} step={5} value={f.kmJour} onChange={ev => set('kmJour', +ev.target.value)} /></Field>
+            <Field label="Patients par jour"><Stepper id="m-pat" value={f.patientsJour} min={1} max={80} onChange={v => set('patientsJour', v)} /></Field>
+            <Field label="Kilomètres par jour"><Stepper id="m-km" value={f.kmJour} min={0} max={300} step={5} unit="km" onChange={v => set('kmJour', v)} /></Field>
           </div>
           <Field label="Horaires de la tournée"><input id="m-hor" className="input" value={f.horaires} onChange={ev => set('horaires', ev.target.value)} /></Field>
           <Field label="Soins spécifiques sur la tournée" hint="Relève signalera au candidat ce qu’il n’a pas déclaré maîtriser."><Chips options={SOINS} value={f.soins} onChange={v => set('soins', v)} /></Field>
@@ -90,11 +83,13 @@ export function MissionNew({ moi }: { moi: Account }) {
       {etape === 2 && (
         <div className="stack">
           <div className="card stack">
-            <Field label={`CA journalier moyen de la tournée : ${euros(f.caJournalier)}`} hint="Honoraires encaissés un jour normal (actes + IFD + IK). Vous seul le voyez en clair ; le remplaçant voit l’estimation."><input id="m-ca" type="range" className="range" min={200} max={900} step={10} value={f.caJournalier} onChange={ev => set('caJournalier', +ev.target.value)} /></Field>
-            <Field label={`Rétrocession proposée : ${f.retrocessionPct} %`} hint="Usage courant : 80 à 90 % selon ce que vous fournissez (véhicule, logiciel, logement)."><input id="m-pct" type="range" className="range" min={60} max={100} value={f.retrocessionPct} onChange={ev => set('retrocessionPct', +ev.target.value)} /></Field>
+            <div className="grid-2">
+              <Field label="CA journalier moyen" hint="Honoraires d’un jour normal, IFD et IK compris. Le remplaçant ne voit que l’estimation."><Stepper id="m-ca" value={f.caJournalier} min={100} max={2000} step={10} unit="€" onChange={v => set('caJournalier', v)} /></Field>
+              <Field label="Rétrocession" hint="Usage : 80 à 90 % selon ce que vous fournissez."><Stepper id="m-pct" value={f.retrocessionPct} min={50} max={100} unit="%" onChange={v => set('retrocessionPct', v)} /></Field>
+            </div>
           </div>
-          <div className="card encre stack">
-            <p className="eyebrow" style={{ color: 'rgba(255,255,255,.7)' }}>Ce que verra le remplaçant</p>
+          <div className="card accent stack">
+            <p className="eyebrow">Ce que verra le remplaçant</p>
             <div className="grid-2">
               <div><div className="display num" style={{ fontSize: '2rem', fontWeight: 700 }}>{euros(est.brutRemplacant)}</div><div className="small muted">rétrocédés sur {jours.total} jours</div></div>
               <div><div className="display num" style={{ fontSize: '2rem', fontWeight: 700 }}>≈ {euros(est.netEstimeRemplacant)}</div><div className="small muted">net estimé après charges</div></div>
