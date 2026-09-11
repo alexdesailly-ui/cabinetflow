@@ -1,8 +1,9 @@
-import { Avatar, Bar, Btn, Ic, Pill } from '../components/ui'
-import { alerteCDOI, conformite, euros, formatDate, joursEntre, montantLigne, palierPour } from '../lib/domain'
-import { BADGES, badgesPour, joursDeReposSecurises } from '../lib/gamification'
+import { Avatar, Btn, Ic, Pill, Pouls, Repere, useCountUp, useRepere } from '../components/ui'
+import { alerteCDOI, conformite, euros, formatDate, joursEntre, montantLigne } from '../lib/domain'
+import { BADGES, badgesPour, joursDeReposSecurises, pouls } from '../lib/gamification'
+import { FiabiliteBloc } from './Parrainage'
 import { go } from '../lib/router'
-import { compte, contratDeMission, missionsDuCabinet, nbFilleulsActifs, useStore } from '../lib/store'
+import { compte, contratDeMission, missionsDuCabinet, useStore } from '../lib/store'
 import type { Account, Mission } from '../lib/types'
 
 export function CabinetHome({ moi }: { moi: Account }) {
@@ -11,8 +12,9 @@ export function CabinetHome({ moi }: { moi: Account }) {
   const aVenir = missions.filter(m => m.statut !== 'terminee' && new Date(m.au) >= new Date())
   const repos = joursDeReposSecurises(moi, e)
   const objectif = 25
-  const nbActifs = nbFilleulsActifs(e, moi.id)
-  const palier = palierPour(nbActifs)
+  const reposAnime = useCountUp(repos)
+  const pulseNouveau = useRepere('cabinet-home') && aVenir.length === 0
+  const evenements = pouls(e, moi.departement)
   const mesBadges = e.badges[moi.id] ?? []
   const derniersBadges = [...mesBadges].sort((a, b) => b.le.localeCompare(a.le)).slice(0, 4)
 
@@ -46,14 +48,15 @@ export function CabinetHome({ moi }: { moi: Account }) {
           <p className="eyebrow">{moi.nomCabinet}</p>
           <h1>Bonjour {moi.prenom}</h1>
         </div>
-        <Btn size="sm" variant="encre" icon={Ic.plus} onClick={() => go({ name: 'mission-new' })}>Me faire remplacer</Btn>
+        <span className={pulseNouveau ? 'pulse' : ''} style={{ borderRadius: 999 }}><Btn size="sm" variant="encre" icon={Ic.plus} onClick={() => go({ name: 'mission-new' })}>Me faire remplacer</Btn></span>
       </div>
+      <Repere k="cabinet-home">Tout ce qui demande un geste de votre part est dans « À faire », du plus urgent au moins urgent.</Repere>
 
       <div className="card encre stack">
         <div className="between">
           <div>
             <p className="eyebrow" style={{ color: 'rgba(255,255,255,.7)' }}>Jours de repos sécurisés en {new Date().getFullYear()}</p>
-            <div className="display num" style={{ fontSize: '2.6rem', fontWeight: 700, lineHeight: 1 }}>{repos} <span style={{ fontSize: '1rem', fontFamily: 'var(--corps)', fontWeight: 500, opacity: .8 }}>/ {objectif} visés</span></div>
+            <div className="display num" style={{ fontSize: '2.6rem', fontWeight: 700, lineHeight: 1 }}>{reposAnime} <span style={{ fontSize: '1rem', fontFamily: 'var(--corps)', fontWeight: 500, opacity: .8 }}>/ {objectif} visés</span></div>
           </div>
           <Ic.sun className="" />
         </div>
@@ -85,11 +88,7 @@ export function CabinetHome({ moi }: { moi: Account }) {
       </section>
 
       <section className="grid-2">
-        <div className="card tap stack" onClick={() => go({ name: 'parrainage' })} style={{ cursor: 'pointer' }}>
-          <div className="between"><p className="eyebrow">Cercle</p><Pill tone="accent" icon={Ic.gift}>{palier.actuel.nom}</Pill></div>
-          <div className="display" style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--encre)' }}>{nbActifs} filleul{nbActifs > 1 ? 's' : ''} actif{nbActifs > 1 ? 's' : ''}</div>
-          {palier.suivant && <><Bar value={(nbActifs / palier.suivant.seuil) * 100} /><p className="tiny muted">Plus que {palier.reste} pour devenir {palier.suivant.nom} : {palier.suivant.rarete.toLowerCase()}</p></>}
-        </div>
+        <div onClick={() => go({ name: 'parrainage' })} style={{ cursor: 'pointer' }}><FiabiliteBloc moi={moi} compact /></div>
         <div className="card stack">
           <p className="eyebrow">Derniers badges</p>
           <div className="row">
@@ -98,6 +97,10 @@ export function CabinetHome({ moi }: { moi: Account }) {
           </div>
           <p className="tiny muted">{mesBadges.length} / {badgesPour(moi).length} obtenus — <button className="linkbtn tiny" onClick={() => go({ name: 'compte' })}>voir tout</button></p>
         </div>
+      </section>
+      <section className="stack">
+        <div className="section-title"><h2 className="vivant">Dans le {moi.departement}</h2><button className="linkbtn small" onClick={() => go({ name: 'parrainage' })}>Mon cercle</button></div>
+        <div className="card"><Pouls evenements={evenements} max={4} /></div>
       </section>
     </div>
   )

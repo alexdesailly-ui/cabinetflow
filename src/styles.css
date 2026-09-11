@@ -264,11 +264,22 @@ td.r, th.r { text-align: right; }
 .ic { width: 1.2em; height: 1.2em; flex-shrink: 0; vertical-align: -0.2em; }
 .card.encre > .between > .ic, .card.encre .row > .ic { width: 1.6em; height: 1.6em; opacity: .85; }
 
-/* Panneau de démonstration ------------------------------------- */
-.demo-fab {
-  position: fixed; right: 14px; bottom: calc(74px + env(safe-area-inset-bottom)); z-index: 30;
-  display: inline-flex; align-items: center; gap: 6px; padding: 9px 14px; border-radius: 999px;
-  background: var(--ambre); color: #fff; border: 0; font-weight: 700; font-size: .85rem; cursor: pointer;
-  box-shadow: var(--ombre);
-}
-.demo-fab .ic { width: 15px; height: 15px; }
+.repere-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); flex-shrink: 0; animation: battre 1.6s ease-in-out infinite; }
+.repere-x { background: none; border: 0; color: var(--accent-fonce); font-weight: 700; cursor: pointer; font-size: .85rem; padding: 4px 6px; text-decoration: underline; text-underline-offset: 3px; }
+@keyframes battre { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.5); opacity: .55; } }
+.pulse { position: relative; }
+.pulse::after { content: ''; position: absolute; inset: -4px; border-radius: inherit; border: 2px solid var(--accent); animation: onde 1.8s ease-out infinite; pointer-events: none; }
+@keyframes onde { 0% { transform: scale(1); opacity: .9; } 100% { transform: scale(1.12); opacity: 0; } }
+.pouls { display: flex; flex-direction: column; }
+.pouls-item { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--ligne); }
+.pouls-item:last-child { border-bottom: 0; }
+.pouls-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.pouls-item:first-child .pouls-dot { animation: battre 1.6s ease-in-out infinite; }
+.vivant { display: inline-flex; align-items: center; gap: 6px; }
+.vivant::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--vert); animation: battre 1.6s ease-in-out infinite; }
+.cercle-avatars { display: flex; }
+.cercle-avatars .avatar { width: 36px; height: 36px; font-size: .8rem; border: 2px solid var(--surface); margin-left: -8px; }
+.cercle-avatars .avatar:first-child { margin-left: 0; }
+.crit { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--ligne); font-size: .92rem; }
+.crit:last-child { border-bottom: 0; }
+.crit .bar { flex: 1; height: 6px; }

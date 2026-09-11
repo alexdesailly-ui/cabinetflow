@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { Avatar, Btn, Ic, Pill, ToastProvider, useToast } from './components/ui'
+import { Avatar, Btn, Ic, Pill, Repere, ToastProvider, useToast } from './components/ui'
 import { attribuerBadges, seConnecter, seDeconnecter } from './lib/actions'
 import { formatDate } from './lib/domain'
 import { BADGES, badgesPour, nouveauxBadges } from './lib/gamification'
@@ -15,7 +15,9 @@ import { Onboarding } from './screens/Onboarding'
 import { Parrainage } from './screens/Parrainage'
 import { Dossier, Missions, RemplacantHome } from './screens/RemplacantHome'
 import { RemplacantProfil, Vivier } from './screens/Vivier'
-import { DemoPanel } from './screens/Demo'
+import { Avis, lireAvis, partagerAvis } from './screens/Demo'
+import { useState } from 'react'
+import { reinitialiserReperes } from './components/ui'
 
 export default function App() {
   return <ToastProvider><Shell /></ToastProvider>
@@ -66,7 +68,6 @@ function Shell() {
       </main>
 
       {moi && <Nav route={route} moi={moi} />}
-      <DemoPanel moi={moi} />
     </div>
   )
 }
@@ -123,6 +124,8 @@ function Compte({ moi }: { moi: Account }) {
   const mesBadges = e.badges[moi.id] ?? []
   const tous = badgesPour(moi)
   const autre = moi.id === DEMO_CABINET ? DEMO_REMPLACANT : moi.id === DEMO_REMPLACANT ? DEMO_CABINET : null
+  const [avisOuvert, setAvisOuvert] = useState(false)
+  const nbAvis = lireAvis().length
   return (
     <div className="stack-l">
       <div className="card row"><Avatar prenom={moi.prenom} nom={moi.nom} lg encre /><div className="grow"><h1 style={{ fontSize: '1.4rem' }}>{moi.prenom} {moi.nom}</h1><div className="small muted">{moi.nomCabinet ?? 'Remplaçant·e'} · {moi.ville}</div><div className="small muted">Membre depuis le {formatDate(moi.creeLe)}</div></div></div>
@@ -140,12 +143,21 @@ function Compte({ moi }: { moi: Account }) {
         </div>
         <p className="tiny muted">Chaque badge récompense quelque chose qui protège vraiment un remplacement : conformité, anticipation, paiement à l’heure.</p>
       </div>
+      <div className="card accent stack">
+        <h3>Votre avis compte</h3>
+        <p className="small">Relève se construit avec les cabinets qui l’essaient. Dites ce qui manque, ce qui gêne, ce pour quoi vous paieriez.</p>
+        <div className="row"><Btn variant="encre" icon={Ic.msg} onClick={() => setAvisOuvert(true)}>Donner mon avis</Btn>{nbAvis > 0 && <Btn variant="ghost" size="sm" icon={Ic.share} onClick={() => partagerAvis(toast)}>Partager les {nbAvis} avis</Btn>}</div>
+      </div>
+      <Avis open={avisOuvert} onClose={() => setAvisOuvert(false)} />
       <div className="card stack">
         <h3>Démonstration</h3>
         {autre && <Btn variant="ghost" block onClick={() => { seConnecter(autre); go({ name: 'home' }); toast(`Vous êtes maintenant ${autre === DEMO_CABINET ? 'Marie Dubois (cabinet)' : 'Julien Morel (remplaçant)'}`) }}>Basculer sur {autre === DEMO_CABINET ? 'le cabinet de Marie' : 'le compte de Julien (remplaçant)'}</Btn>}
         <div className="small muted">Comptes disponibles sur cet appareil :</div>
         <div className="row">{e.accounts.filter(a => a.email && (a.id.startsWith('cab-') || a.id.startsWith('rmp-')) && a.id !== moi.id).slice(0, 8).map(a => <button key={a.id} className="chip" onClick={() => { seConnecter(a.id); go({ name: 'home' }) }}>{a.prenom} {a.nom[0]}. · {a.role === 'cabinet' ? 'cabinet' : 'rempl.'}</button>)}</div>
-        <Btn variant="danger" size="sm" onClick={() => { if (confirm('Effacer toutes les données locales et régénérer la démonstration ?')) { reinitialiser(); semerDemo(); go({ name: 'landing' }) } }}>Réinitialiser la démonstration</Btn>
+        <div className="row">
+          <Btn variant="ghost" size="sm" onClick={() => { reinitialiserReperes(); toast('Les repères s’afficheront à nouveau') }}>Revoir les repères</Btn>
+          <Btn variant="danger" size="sm" onClick={() => { if (confirm('Effacer toutes les données locales et régénérer la démonstration ?')) { reinitialiser(); semerDemo(); reinitialiserReperes(); go({ name: 'landing' }) } }}>Réinitialiser la démonstration</Btn>
+        </div>
       </div>
       <Btn variant="ghost" icon={Ic.logout} onClick={() => { seDeconnecter(); go({ name: 'landing' }) }}>Se déconnecter</Btn>
       <p className="tiny muted">Relève — version pilote. Données stockées uniquement dans ce navigateur. Aucune donnée réelle de patient ne doit être saisie. Les montants sont des estimations, pas un calcul fiscal. {BADGES.length} badges, {e.accounts.length} comptes en local.</p>

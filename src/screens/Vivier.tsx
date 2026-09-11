@@ -1,9 +1,10 @@
 import { useState } from 'react'
-import { Avatar, Bar, Btn, Field, Ic, Pill, Ring, useToast } from '../components/ui'
+import { Avatar, Bar, Btn, Field, Ic, Pill, Repere, Ring, useToast } from '../components/ui'
 import { inviter } from '../lib/actions'
-import { PIECES, conformite, etatPiece, formatDate, palierPour } from '../lib/domain'
+import { PIECES, conformite, etatPiece, formatDate } from '../lib/domain'
+import { fiabilite } from '../lib/gamification'
 import { go } from '../lib/router'
-import { compte, contratsDuRemplacant, nbFilleulsActifs, recosVers, useStore } from '../lib/store'
+import { compte, contratsDuRemplacant, recosVers, useStore } from '../lib/store'
 import type { Account } from '../lib/types'
 
 /** Le vivier : les remplaçants du secteur, triés par confiance, pas par date d'inscription. */
@@ -12,7 +13,7 @@ export function Vivier({ moi }: { moi: Account }) {
   const { toast } = useToast()
   const [filtre, setFiltre] = useState<'tous' | 'verifies' | 'recommandes'>('tous')
   const [nomCarnet, setNomCarnet] = useState('')
-  const palier = palierPour(nbFilleulsActifs(e, moi.id))
+  const fiab = fiabilite(moi, e)
 
   const remplacants = e.accounts.filter(a => a.role === 'remplacant').map(r => {
     const conf = conformite(r)
@@ -31,12 +32,7 @@ export function Vivier({ moi }: { moi: Account }) {
         <h1>Remplaçants du secteur</h1>
         <p className="muted small" style={{ marginTop: 6 }}>Triés par confiance : dossier, recommandations vérifiées, proximité avec votre cercle.</p>
       </div>
-      {palier.actuel.niveau < 3 && (
-        <div className="card accent small between">
-          <span><strong>Niveau Référent :</strong> voyez les nouveaux inscrits 24 h avant les autres cabinets.</span>
-          <Btn size="sm" variant="soft" onClick={() => go({ name: 'parrainage' })}>Parrainer</Btn>
-        </div>
-      )}
+      <Repere k="vivier">Triés par confiance : dossier, recommandations vérifiées, proximité avec votre cercle. {fiab.niveau === 'Référence' ? 'Vous voyez les nouveaux inscrits 24 h avant les autres.' : 'Les cabinets « Référence » voient les nouveaux inscrits 24 h avant les autres.'}</Repere>
       <div className="tabs" role="tablist">
         {(['tous', 'verifies', 'recommandes'] as const).map(k => <button key={k} role="tab" aria-selected={filtre === k} className={filtre === k ? 'on' : ''} onClick={() => setFiltre(k)}>{k === 'tous' ? 'Tous' : k === 'verifies' ? 'Dossier vérifié' : 'Recommandés'}</button>)}
       </div>

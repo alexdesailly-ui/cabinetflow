@@ -2,7 +2,7 @@
 
 **Le remplacement infirmier libéral, sans la charge mentale.**
 
-Relève est une application SaaS destinée aux cabinets infirmiers libéraux (IDEL). Elle ne se contente pas de publier une annonce de remplacement : elle vérifie le remplaçant, calcule la rétrocession, génère le contrat conforme, rappelle la transmission à l'Ordre, structure la passation de tournée et suit les reversements. Un système de parrainage récompense ce qui est réellement rare pour un titulaire : l'accès prioritaire aux bons remplaçants.
+Relève est une application SaaS destinée aux cabinets infirmiers libéraux (IDEL). Elle ne se contente pas de publier une annonce de remplacement : elle vérifie le remplaçant, calcule la rétrocession, génère le contrat conforme, rappelle la transmission à l'Ordre, structure la passation de tournée et suit les reversements. Le parrainage est réciproque et plafonné ; l'accès prioritaire aux bons remplaçants se gagne par la fiabilité, pas par le recrutement. Les guides visuels tiennent en une ligne, une seule fois.
 
 Le raisonnement marché, le modèle économique et la mécanique virale sont détaillés dans [CONCEPT.md](CONCEPT.md).
 
@@ -22,7 +22,7 @@ Parcours conseillé :
 
 1. **Côté cabinet** (Marie Dubois, Angers) : examiner les candidatures du remplacement d'été → retenir Julien → signer le contrat → transmettre à l'Ordre → préparer la passation → régler la rétrocession en retard.
 2. **Côté remplaçant** (Julien Morel) : compléter le dossier de confiance, candidater, signer.
-3. **Parrainage** : copier le lien, ouvrir `#/invite/MARDUB-7K2` dans un autre onglet, créer un compte : le filleul démarre avec un mois offert et apparaît chez le parrain. Le bouton « simuler » fait passer un filleul à « actif » pour voir les paliers monter.
+3. **Cercle** : copier le lien, ouvrir `#/invite/MARDUB-7K2` dans un autre onglet, créer un compte : le filleul démarre avec un mois offert et apparaît chez le parrain. Le bouton « simuler » fait signer un filleul en attente. La fiabilité (Nouveau / Fiable / Référence) ne dépend que d'actes vérifiables, jamais du nombre d'invités.
 
 Le menu « Mon compte » permet de basculer d'un compte à l'autre et de réinitialiser la démonstration.
 

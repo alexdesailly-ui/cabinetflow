@@ -1,8 +1,9 @@
-import { Bar, Btn, Ic, Pill, Ring } from '../components/ui'
-import { PIECES, alerteCDOI, conformite, estimerRetrocession, euros, formatDate, joursEntre, montantLigne, palierPour } from '../lib/domain'
-import { BADGES, badgesPour } from '../lib/gamification'
+import { Btn, Ic, Pill, Pouls, Repere, Ring, useCountUp } from '../components/ui'
+import { PIECES, alerteCDOI, conformite, estimerRetrocession, euros, formatDate, joursEntre, montantLigne } from '../lib/domain'
+import { BADGES, badgesPour, pouls } from '../lib/gamification'
+import { FiabiliteBloc } from './Parrainage'
 import { go } from '../lib/router'
-import { compte, contratsDuRemplacant, nbFilleulsActifs, recosVers, useStore } from '../lib/store'
+import { compte, contratsDuRemplacant, recosVers, useStore } from '../lib/store'
 import type { Account } from '../lib/types'
 import { MissionCard } from './CabinetHome'
 
@@ -17,7 +18,8 @@ export function RemplacantHome({ moi }: { moi: Account }) {
   const enAttente = e.contrats.filter(c => c.remplacantId === moi.id && !c.signatureRemplacant)
   const candidatures = e.candidatures.filter(c => c.remplacantId === moi.id && c.statut === 'envoyee')
   const mesBadges = e.badges[moi.id] ?? []
-  const palier = palierPour(nbFilleulsActifs(e, moi.id))
+  const gagneAnime = useCountUp(gagne)
+  const evenements = pouls(e, moi.departement)
 
   // Missions correspondant au profil : département, dates disponibles, soins.
   const suggestions = e.missions.filter(m => m.statut === 'publiee' && m.cabinetId !== moi.id && !e.candidatures.some(c => c.missionId === m.id && c.remplacantId === moi.id))
@@ -27,6 +29,7 @@ export function RemplacantHome({ moi }: { moi: Account }) {
   return (
     <div className="stack-l">
       <div className="between"><div><p className="eyebrow">Espace remplaçant</p><h1>Bonjour {moi.prenom}</h1></div><Btn size="sm" variant="encre" onClick={() => go({ name: 'missions' })}>Voir les remplacements</Btn></div>
+      <Repere k="remplacant-home">Votre dossier vous suit de cabinet en cabinet. Complet, il vous place en tête du vivier.</Repere>
 
       <div className={`card ${conf.verifie ? 'ok' : 'warn'} row`} style={{ cursor: 'pointer' }} onClick={() => go({ name: 'dossier' })}>
         <Ring value={conf.score} tone={conf.verifie ? 'ok' : conf.score > 50 ? 'warn' : 'danger'} />
@@ -50,7 +53,7 @@ export function RemplacantHome({ moi }: { moi: Account }) {
       )}
 
       <section className="grid-2">
-        <div className="tile"><span className="k">Rétrocessions perçues</span><span className="v num">{euros(gagne)}</span><span className="s">via Relève</span></div>
+        <div className="tile"><span className="k">Rétrocessions perçues</span><span className="v num">{euros(gagneAnime)}</span><span className="s">via Relève</span></div>
         <div className="tile"><span className="k">Recommandations</span><span className="v num">{recos.length}</span><span className="s">vérifiées par contrat</span></div>
       </section>
 
@@ -71,16 +74,16 @@ export function RemplacantHome({ moi }: { moi: Account }) {
       )}
 
       <section className="grid-2">
-        <div className="card tap stack" onClick={() => go({ name: 'parrainage' })} style={{ cursor: 'pointer' }}>
-          <div className="between"><p className="eyebrow">Cercle</p><Pill tone="accent" icon={Ic.gift}>{palier.actuel.nom}</Pill></div>
-          <p className="small">Invitez les cabinets que vous remplacez déjà : vos recommandations vérifiées s’y accumulent.</p>
-          {palier.suivant && <Bar value={(nbFilleulsActifs(e, moi.id) / palier.suivant.seuil) * 100} />}
-        </div>
+        <div onClick={() => go({ name: 'parrainage' })} style={{ cursor: 'pointer' }}><FiabiliteBloc moi={moi} compact /></div>
         <div className="card stack">
           <p className="eyebrow">Badges</p>
           <div className="row">{mesBadges.length === 0 ? <span className="small muted">Complétez votre dossier pour le premier.</span> : mesBadges.map(b => <span key={b.key} title={BADGES.find(x => x.key === b.key)?.description} style={{ fontSize: '1.6rem' }}>{BADGES.find(x => x.key === b.key)?.emoji}</span>)}</div>
           <p className="tiny muted">{mesBadges.length} / {badgesPour(moi).length}</p>
         </div>
+      </section>
+      <section className="stack">
+        <div className="section-title"><h2 className="vivant">Dans le {moi.departement}</h2></div>
+        <div className="card"><Pouls evenements={evenements} max={4} /></div>
       </section>
     </div>
   )
@@ -115,6 +118,7 @@ export function Dossier({ moi }: { moi: Account }) {
   const conf = conformite(moi)
   return (
     <div className="stack-l">
+      <Repere k="dossier">Le bouclier marque les pièces sans lesquelles aucun contrat ne peut être signé. Chaque échéance est surveillée.</Repere>
       <div><p className="eyebrow">Dossier de confiance</p><h1>Vos pièces</h1><p className="small muted" style={{ marginTop: 6 }}>Chaque pièce a une échéance. Relève vous prévient 60 jours avant, et empêche qu’un contrat soit signé si une pièce expire avant la fin du remplacement.</p></div>
       <div className="card row"><Ring value={conf.score} tone={conf.verifie ? 'ok' : conf.score > 50 ? 'warn' : 'danger'} /><div className="grow"><h3>{conf.verifie ? 'Dossier vérifié' : `${conf.score} % complet`}</h3><p className="small muted">{conf.verifie ? 'Vous apparaissez en tête du vivier.' : 'Les pièces critiques sont marquées d’un bouclier.'}</p></div></div>
       <DossierForm moi={moi} />

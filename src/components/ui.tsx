@@ -194,3 +194,79 @@ function confettis(c: HTMLCanvasElement) {
   }
   requestAnimationFrame(tick)
 }
+
+/* Repères : un guide visuel d'une ligne, montré une seule fois ---------- */
+const CLE_REPERES = 'releve:reperes'
+const abonnesReperes = new Set<() => void>()
+function lireReperes(): Set<string> { try { return new Set(JSON.parse(localStorage.getItem(CLE_REPERES) ?? '[]')) } catch { return new Set() } }
+export function marquerVu(k: string) {
+  const v = lireReperes(); v.add(k)
+  try { localStorage.setItem(CLE_REPERES, JSON.stringify([...v])) } catch { /* mode privé */ }
+  abonnesReperes.forEach(f => f())
+}
+export function reinitialiserReperes() {
+  try { localStorage.removeItem(CLE_REPERES) } catch { /* mode privé */ }
+  abonnesReperes.forEach(f => f())
+}
+/** Vrai tant que le repère n'a pas été fermé : sert à faire pulser l'action attendue. */
+export function useRepere(k: string): boolean {
+  const [, force] = useState(0)
+  useEffect(() => { const f = () => force(x => x + 1); abonnesReperes.add(f); return () => { abonnesReperes.delete(f) } }, [])
+  return !lireReperes().has(k)
+}
+export function Repere({ k, children }: { k: string; children: ReactNode }) {
+  const visible = useRepere(k)
+  if (!visible) return null
+  return (
+    <div className="repere" role="note">
+      <span className="repere-dot" aria-hidden="true" />
+      <span className="grow">{children}</span>
+      <button className="repere-x" onClick={() => marquerVu(k)} aria-label="Compris">Compris</button>
+    </div>
+  )
+}
+
+/* Compteur vivant --------------------------------------------------------- */
+export function useCountUp(cible: number, duree = 700): number {
+  const [v, setV] = useState(cible)
+  const precedent = useRef(cible)
+  useEffect(() => {
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) { setV(cible); precedent.current = cible; return }
+    const depart = precedent.current, delta = cible - depart, t0 = performance.now()
+    let raf = 0
+    const tick = (t: number) => {
+      const p = Math.min(1, (t - t0) / duree), e = 1 - Math.pow(1 - p, 3)
+      setV(Math.round(depart + delta * e))
+      if (p < 1) raf = requestAnimationFrame(tick); else precedent.current = cible
+    }
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+  }, [cible, duree])
+  return v
+}
+
+/* Pouls : la vie du réseau ---------------------------------------------- */
+export function Pouls({ evenements, max = 5 }: { evenements: { le: string; texte: string; type: string }[]; max?: number }) {
+  const couleur: Record<string, string> = { contrat: 'var(--vert)', annonce: 'var(--ambre)', reco: 'var(--accent)', dossier: 'var(--encre)', cercle: 'var(--accent)' }
+  if (!evenements.length) return <p className="small muted">Rien pour l’instant. Le premier mouvement, c’est peut-être le vôtre.</p>
+  return (
+    <div className="pouls">
+      {evenements.slice(0, max).map((ev, i) => (
+        <div key={i} className="pouls-item">
+          <span className="pouls-dot" style={{ background: couleur[ev.type] ?? 'var(--texte-3)' }} aria-hidden="true" />
+          <span className="grow small">{ev.texte}</span>
+          <span className="tiny muted num" style={{ whiteSpace: 'nowrap' }}>{relatif(ev.le)}</span>
+        </div>
+      ))}
+    </div>
+  )
+}
+function relatif(iso: string): string {
+  const ms = Date.now() - new Date(iso).getTime()
+  const h = Math.round(ms / 3_600_000), j = Math.round(ms / 86_400_000)
+  if (h < 1) return 'à l’instant'
+  if (h < 24) return `il y a ${h} h`
+  if (j === 1) return 'hier'
+  if (j < 30) return `il y a ${j} j`
+  return `il y a ${Math.round(j / 30)} mois`
+}

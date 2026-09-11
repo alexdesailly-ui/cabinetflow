@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Avatar, Btn, Field, Ic, Modal, Pill, Toggle, useToast } from '../components/ui'
+import { Avatar, Btn, Field, Ic, Modal, Pill, Repere, Toggle, useRepere, useToast } from '../components/ui'
 import { ajouterLigne, candidater, enregistrerFiche, enregistrerMission, majContrat, marquerPayee, publierMission, recommander, retenir, signer, transmettreCDOI } from '../lib/actions'
 import { texteContrat } from '../lib/contrat'
 import { alerteCDOI, conformite, controlerAffectation, estimerRetrocession, euros, formatDate, formatDateCourte, joursEntre, montantLigne } from '../lib/domain'
@@ -58,6 +58,10 @@ export function MissionDetail({ id, moi, ongletInitial }: { id: string; moi: Acc
         </div>
       </div>
 
+      {estCabinet && m.statut === 'publiee' && !m.remplacantRetenuId && (() => {
+        const dispo = e.accounts.filter(a => a.role === 'remplacant' && a.departement === cabinet.departement && (a.disponibilites ?? []).some(d => d.du <= m.du && d.au >= m.au)).length
+        return dispo > 0 ? <div className="card ok small vivant"><strong>{dispo} remplaçant{dispo > 1 ? 's' : ''} du secteur {dispo > 1 ? 'sont disponibles' : 'est disponible'} sur ces dates.</strong> <button className="linkbtn small" onClick={() => go({ name: 'vivier' })}>Voir</button></div> : null
+      })()}
       {estCabinet && m.statut === 'brouillon' && (
         <div className="card warn between">
           <div><strong>Pas encore publié.</strong> <span className="small">{jours} jours d’avance{jours < 30 ? ' — c’est court' : ''}.</span></div>
@@ -69,6 +73,11 @@ export function MissionDetail({ id, moi, ongletInitial }: { id: string; moi: Acc
         {onglets.map(o => <button key={o.k} role="tab" aria-selected={onglet === o.k} className={onglet === o.k ? 'on' : ''} onClick={() => setOnglet(o.k)} style={{ position: 'relative' }}>{o.l}{o.dot && <span className="dot" style={{ position: 'absolute', top: 6, right: 8, width: 7, height: 7, borderRadius: 99, background: 'var(--ambre)' }} />}</button>)}
       </div>
 
+      {onglet === 'candidatures' && estCabinet && <Repere k="candidatures">Un point rouge empêche la signature. Un point orange se vérifie de vive voix. Retenir un candidat prépare le contrat.</Repere>}
+      {onglet === 'candidatures' && !estCabinet && <Repere k="candidature-r">Le net estimé tient compte de vos charges. Si votre dossier bloque, vous le voyez avant de candidater.</Repere>}
+      {onglet === 'contrat' && <Repere k="contrat">Signez en tapant votre nom. Le contrat doit partir au conseil départemental de l’Ordre avant le premier jour.</Repere>}
+      {onglet === 'passation' && <Repere k="passation">Initiales, rue, créneau, soins. Jamais de nom. Le remplaçant la voit 7 jours avant, une fois le contrat signé.</Repere>}
+      {onglet === 'retrocession' && <Repere k="retrocession">Saisissez les honoraires encaissés par période : le montant à reverser et l’échéance se calculent seuls.</Repere>}
       {onglet === 'candidatures' && <Candidatures m={m} moi={moi} estCabinet={estCabinet} />}
       {onglet === 'contrat' && <ContratOnglet m={m} c={c} moi={moi} estCabinet={estCabinet} cabinet={cabinet} retenu={retenu} />}
       {onglet === 'passation' && <Passation m={m} c={c} estCabinet={estCabinet} />}
@@ -84,6 +93,7 @@ function Candidatures({ m, moi, estCabinet }: { m: Mission; moi: Account; estCab
   const cands = e.candidatures.filter(x => x.missionId === m.id).sort((a, b) => a.envoyeeLe.localeCompare(b.envoyeeLe))
   const [message, setMessage] = useState('Bonjour, disponible sur toute la période et véhiculé·e. ')
   const [confirm, setConfirm] = useState<string | null>(null)
+  const pulseRetenir = useRepere('candidatures')
 
   if (!estCabinet) {
     const mienne = cands.find(x => x.remplacantId === moi.id)
@@ -137,7 +147,7 @@ function Candidatures({ m, moi, estCabinet }: { m: Mission; moi: Account; estCab
             <p className="small">« {cd.message} »</p>
             <Controles controles={controles} compact />
             {cd.statut === 'envoyee' && !m.remplacantRetenuId && (
-              <Btn size="sm" variant={bloquant ? 'ghost' : 'encre'} disabled={bloquant} onClick={() => setConfirm(r.id)}>{bloquant ? 'Dossier bloquant' : 'Retenir et préparer le contrat'}</Btn>
+              <span className={!bloquant && pulseRetenir ? 'pulse' : ''} style={{ borderRadius: 999, display: 'inline-flex' }}><Btn size="sm" variant={bloquant ? 'ghost' : 'encre'} disabled={bloquant} onClick={() => setConfirm(r.id)}>{bloquant ? 'Dossier bloquant' : 'Retenir et préparer le contrat'}</Btn></span>
             )}
             {cd.statut === 'retenue' && <Pill tone="ok" icon={Ic.check}>Retenu·e</Pill>}
             {cd.statut === 'ecartee' && <Pill>Non retenu·e</Pill>}

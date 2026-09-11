@@ -1,4 +1,4 @@
-import { dansNJours, genererCode } from './domain'
+import { MOIS_OFFERTS_PAR_PARRAINAGE, PLAFOND_MOIS_OFFERTS_PAR_AN, dansNJours, genererCode } from './domain'
 import { id, maintenant, mutate, type Etat } from './store'
 import type { Account, Contrat, FicheTournee, Invitation, LigneRetrocession, Mission, Recommandation, Role } from './types'
 
@@ -95,10 +95,18 @@ export function signer(cid: string, parId: string, saisie: string) {
       const inv = e.invitations.find(i => i.filleulId === parId)
       if (parrain && inv && !inv.actifLe) {
         inv.actifLe = maintenant()
-        if (parrain.role === 'cabinet') parrain.moisOfferts += 1
+        crediter(parrain, e)
       }
     }
   })
+}
+
+/** Un mois par filleul actif, plafonné sur l'année : la récompense reste un remerciement, pas un revenu. */
+function crediter(parrain: Account, e: Etat) {
+  if (parrain.role !== 'cabinet') return
+  const annee = new Date().getFullYear().toString()
+  const dejaCetteAnnee = e.invitations.filter(i => i.parId === parrain.id && i.actifLe?.startsWith(annee)).length
+  if (dejaCetteAnnee <= PLAFOND_MOIS_OFFERTS_PAR_AN) parrain.moisOfferts += MOIS_OFFERTS_PAR_PARRAINAGE
 }
 
 export function transmettreCDOI(cid: string) { majContrat(cid, { transmisCDOILe: maintenant() }) }
@@ -151,6 +159,6 @@ export function simulerActivationFilleul(invId: string) {
       e.accounts.push(nouveau)
       inv.filleulId = nouveau.id
     }
-    if (!inv.actifLe) { inv.actifLe = maintenant(); if (parrain.role === 'cabinet') parrain.moisOfferts += 1 }
+    if (!inv.actifLe) { inv.actifLe = maintenant(); crediter(parrain, e) }
   })
 }

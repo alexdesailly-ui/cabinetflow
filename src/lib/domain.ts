@@ -299,52 +299,17 @@ export function alerteCDOI(contrat: Contrat, mission: Mission): Controle | null 
 }
 
 /* ------------------------------------------------------------------ */
-/* Parrainage : la mécanique virale                                    */
+/* Parrainage : simple, réciproque, plafonné                           */
 /* ------------------------------------------------------------------ */
 
-export interface Palier {
-  niveau: number
-  nom: string
-  seuil: number
-  avantage: string
-  /** L'avantage rare : ce qui se gagne ne s'achète pas. */
-  rarete: string
-}
-
-export const PALIERS: Palier[] = [
-  {
-    niveau: 1, nom: 'Membre', seuil: 0,
-    avantage: 'Diffusion standard de vos annonces.',
-    rarete: 'Vous voyez le vivier de votre département.',
-  },
-  {
-    niveau: 2, nom: 'Confrère', seuil: 1,
-    avantage: '1 mois offert, et 1 mois offert à votre filleul.',
-    rarete: 'Vos annonces passent en tête du fil pendant 48 h.',
-  },
-  {
-    niveau: 3, nom: 'Référent', seuil: 3,
-    avantage: '3 mois offerts cumulés.',
-    rarete: 'Vous voyez les nouveaux remplaçants 24 h avant tout le monde.',
-  },
-  {
-    niveau: 4, nom: 'Pilier', seuil: 7,
-    avantage: 'Abonnement offert tant que vos 7 filleuls restent actifs.',
-    rarete: 'Vivier régional élargi et mise en relation prioritaire l’été.',
-  },
-]
-
-export function palierPour(nbActifs: number): { actuel: Palier; suivant?: Palier; reste: number } {
-  let actuel = PALIERS[0]
-  for (const p of PALIERS) if (nbActifs >= p.seuil) actuel = p
-  const suivant = PALIERS.find(p => p.seuil > nbActifs)
-  return { actuel, suivant, reste: suivant ? suivant.seuil - nbActifs : 0 }
-}
+/** Un mois offert pour chacun, jamais plus de douze par an : pas de pyramide. */
+export const MOIS_OFFERTS_PAR_PARRAINAGE = 1
+export const PLAFOND_MOIS_OFFERTS_PAR_AN = 12
 
 export function genererCode(prenom: string, nom: string): string {
   const base = (prenom.slice(0, 3) + nom.slice(0, 3))
     .toUpperCase()
-    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
     .replace(/[^A-Z]/g, '') || 'IDEL'
   const suffixe = Math.random().toString(36).slice(2, 5).toUpperCase()
   return `${base}-${suffixe}`
@@ -353,4 +318,37 @@ export function genererCode(prenom: string, nom: string): string {
 export function lienParrainage(code: string): string {
   const base = location.origin + location.pathname
   return `${base}#/invite/${code}`
+}
+
+/* ------------------------------------------------------------------ */
+/* Fiabilité : ce qui se gagne en faisant bien, pas en recrutant       */
+/* ------------------------------------------------------------------ */
+
+export type NiveauFiabilite = 'Nouveau' | 'Fiable' | 'Référence'
+
+export interface Fiabilite {
+  score: number | null
+  niveau: NiveauFiabilite
+  /** Les faits qui composent le score, pour que chacun sache quoi faire. */
+  criteres: { label: string; ok: number; total: number; poids: number }[]
+  avantage: string
+}
+
+export const AVANTAGES: Record<NiveauFiabilite, string> = {
+  Nouveau: 'Diffusion standard.',
+  Fiable: 'Vos annonces sont mises en avant dans le département.',
+  Référence: 'Vous voyez les nouveaux remplaçants 24 h avant les autres cabinets.',
+}
+
+export function niveauPour(score: number | null): NiveauFiabilite {
+  if (score === null || score < 40) return 'Nouveau'
+  if (score < 75) return 'Fiable'
+  return 'Référence'
+}
+
+export function scoreDepuisCriteres(criteres: Fiabilite['criteres']): number | null {
+  const evaluables = criteres.filter(c => c.total > 0)
+  if (!evaluables.length) return null
+  const poids = evaluables.reduce((s, c) => s + c.poids, 0)
+  return Math.round(evaluables.reduce((s, c) => s + (c.ok / c.total) * c.poids, 0) / poids * 100)
 }

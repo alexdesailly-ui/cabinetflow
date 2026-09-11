@@ -40,20 +40,20 @@ Positionnement en une phrase : **Relève n'est pas un site d'annonces, c'est le 
 
 Ordre de grandeur : ~30 000 cabinets adressables. 1 % de pénétration = 300 cabinets = ~100 k€ ARR ; 5 % = ~500 k€ ARR. Avec des coûts d'infrastructure quasi nuls, le point mort est très bas — c'est un actif récurrent, pas un pari de croissance.
 
-## 4. Pourquoi c'est viral : la boucle est structurelle avant d'être incitative
+## 4. Pourquoi ça se recommande : la boucle est structurelle, la récompense reste un remerciement
 
-**Boucle structurelle** (elle marche même sans récompense) :
+**Boucle structurelle** (elle marche sans aucune récompense) :
 - Un contrat implique deux personnes. Retenir un remplaçant l'oblige à créer un compte pour signer → chaque remplacement recrute l'autre côté.
 - Le remplaçant veut capitaliser ses recommandations vérifiées → il pousse ses autres cabinets à signer sur Relève.
 - Le titulaire veut voir *ses* remplaçants habituels dans son vivier → il invite son carnet.
 
-**Boucle incitative** — la règle : récompenser avec ce qui ne s'achète pas.
-- Les deux côtés gagnent : 1 mois offert au parrain *et* au filleul, vérification prioritaire du filleul.
-- Paliers (Membre → Confrère → Référent → Pilier) dont l'avantage principal est **l'accès prioritaire à la ressource rare** : annonce en tête de fil, nouveaux remplaçants visibles 24 h avant les autres, vivier régional élargi. Pour un titulaire en juin, être vu en premier vaut plus qu'une remise.
-- Un filleul est « actif » quand il a **signé un contrat**, pas quand il a créé un compte : la récompense est indexée sur la valeur réellement délivrée, donc pas de comptes fantômes.
-- Classement départemental, remis à zéro chaque saison ; QR code et affiche pour la salle de soins ; lien nominatif (« Marie vous invite »).
+**Parrainage volontairement plat.** Un confrère invité et vous gagnez chacun un mois, plafonné à douze mois par an. Pas de paliers par nombre de recrues, pas de classement, pas d'abonnement à vie contre sept filleuls : dès qu'une récompense croît avec le nombre de personnes amenées, le produit prend la forme d'une pyramide, et une profession réglementée le sent immédiatement. Un filleul « compte » quand il a **signé un contrat**, pas quand il a créé un compte.
 
-**Gamification, avec parcimonie** : badges uniquement pour ce qui protège réellement un remplacement (contrat transmis à J-7, rétrocession réglée à l'heure, été anticipé avant le 15 mai, dossier complet), jauge « jours de repos sécurisés » qui rend visible la seule métrique qui compte pour un titulaire, confettis sur les signatures. Rien pour « ouvrir l'app trois jours de suite ».
+**La progression vient de la fiabilité, pas du recrutement.** Trois niveaux (Nouveau, Fiable, Référence) calculés uniquement sur des actes vérifiables : contrat transmis à l'Ordre avant le début, rétrocession reversée avant l'échéance, fiche de passation complète, recommandation laissée après le remplacement. Côté remplaçant : pièces valides et à jour, remplacements menés à terme, recommandations reçues. L'avantage du niveau Référence est la ressource rare — voir les nouveaux remplaçants 24 h avant les autres cabinets — et il se gagne en se comportant bien avec ses confrères. C'est une gamification alignée sur l'intérêt du réseau.
+
+**Vitalité.** Le réseau doit avoir l'air vivant sans rien inventer : un pouls du département (qui a signé, qui cherche, qui vient de compléter son dossier), le nombre de remplaçants disponibles sur les dates d'une annonce, des compteurs qui bougent. Les badges récompensent des comportements qui protègent un remplacement (contrat à l'Ordre à J-7, rétrocession à l'heure, été anticipé), jamais l'assiduité.
+
+**Guides visuels minimalistes.** Aucun tutoriel : un repère d'une ligne, une seule fois, à l'endroit exact du geste attendu, et un point qui pulse sur l'action suivante. Si l'interface a besoin d'être racontée, c'est elle qu'il faut changer.
 
 ## 5. Risques et angles morts à surveiller
 

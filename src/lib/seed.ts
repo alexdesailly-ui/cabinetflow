@@ -70,7 +70,7 @@ export function semerDemo() {
       soinsMaitrises: ['Pansements complexes', 'Perfusions / PICC', 'Diabète / insuline', 'Soins palliatifs', 'Nursing / toilettes'],
       pieces: pieces({ rpps: '10009876543', autorisation: 210 }),
       disponibilites: [{ du: j(20), au: j(75) }, { du: j(100), au: j(130) }],
-      codeParrain: 'JULMOR-3P9', parrainePar: 'MARDUB-7K2',
+      codeParrain: 'JULMOR-3P9', parrainePar: 'MARDUB-7K2', creeLe: j(-210),
     })
     const amina = compte({
       id: 'rmp-amina', role: 'remplacant', prenom: 'Amina', nom: 'Cherif', ville: 'Trélazé', codePostal: '49800',
@@ -78,6 +78,7 @@ export function semerDemo() {
       soinsMaitrises: ['Pansements complexes', 'Diabète / insuline', 'Nursing / toilettes', 'Stomies'],
       pieces: pieces({ rpps: '10005551234', autorisation: 38 }),
       disponibilites: [{ du: j(10), au: j(60) }],
+      creeLe: j(-160),
     })
     const thomas = compte({
       id: 'rmp-thomas', role: 'remplacant', prenom: 'Thomas', nom: 'Girard', ville: 'Avrillé', codePostal: '49240',
@@ -92,6 +93,7 @@ export function semerDemo() {
       soinsMaitrises: ['Chimiothérapie à domicile', 'Perfusions / PICC', 'Soins palliatifs', 'Pansements complexes', 'Dialyse péritonéale'],
       pieces: pieces({ rpps: '10003334455', autorisation: 330, rcp: 45 }),
       disponibilites: [{ du: j(45), au: j(80) }],
+      creeLe: j(-5),
     })
     const nadia = compte({
       id: 'rmp-nadia', role: 'remplacant', prenom: 'Nadia', nom: 'Petit', ville: 'Angers', codePostal: '49000',
@@ -148,7 +150,15 @@ export function semerDemo() {
       vehiculeFourni: true, logementFourni: false,
       statut: 'publiee' as const, publieeLe: j(-1), invitesDirects: [],
     }
-    e.missions = [ete, passe, noel, saumur, cholet]
+    const saumurAutomne = {
+      id: 'mis-saumur-automne', cabinetId: 'cab-loire', motif: 'Formation' as const,
+      du: j(12), au: j(14), joursTravailles: 3, dimanchesFeries: 0,
+      caJournalier: 420, retrocessionPct: 85, patientsJour: 24, kmJour: 45,
+      horaires: '7 h – 13 h / 16 h 30 – 19 h', soinsRequis: ['Nursing / toilettes'],
+      vehiculeFourni: false, logementFourni: false,
+      statut: 'pourvue' as const, publieeLe: j(-9), remplacantRetenuId: 'rmp-amina', invitesDirects: [],
+    }
+    e.missions = [ete, passe, noel, saumur, cholet, saumurAutomne]
 
     // Candidatures -------------------------------------------------------
     e.candidatures = [
@@ -163,6 +173,12 @@ export function semerDemo() {
 
     // Contrat terminé + rétrocession -------------------------------------
     e.contrats = [{
+      id: 'ctr-saumur-automne', missionId: 'mis-saumur-automne', cabinetId: 'cab-loire', remplacantId: 'rmp-amina',
+      creeLe: j(-3), retrocessionPct: 85, echeanceReversement: j(30), clauseNonConcurrence: false,
+      signatureTitulaire: { parId: 'cab-loire', le: j(-3), saisie: 'Sophie Lemaire' },
+      signatureRemplacant: { parId: 'rmp-amina', le: j(-2), saisie: 'Amina Cherif' },
+      transmisCDOILe: j(-1),
+    }, {
       id: 'ctr-printemps', missionId: 'mis-printemps', cabinetId: DEMO_CABINET, remplacantId: DEMO_REMPLACANT,
       creeLe: j(-55), retrocessionPct: 85, echeanceReversement: j(-3), clauseNonConcurrence: false,
       signatureTitulaire: { parId: DEMO_CABINET, le: j(-55), saisie: 'Marie Dubois' },
@@ -216,7 +232,7 @@ export function semerDemo() {
       [DEMO_CABINET]: [
         { key: 'premier-besoin', le: j(-70) }, { key: 'premier-contrat', le: j(-54) },
         { key: 'ordre-ok', le: j(-50) }, { key: 'passation', le: j(-45) },
-        { key: 'retro-a-lheure', le: j(-22) }, { key: 'confrere', le: j(-120) },
+        { key: 'retro-a-lheure', le: j(-22) }, { key: 'cercle', le: j(-120) },
       ],
       [DEMO_REMPLACANT]: [
         { key: 'dossier-complet', le: j(-200) }, { key: 'premiere-mission', le: j(-54) }, { key: 'recommande', le: j(-200) },

@@ -1,6 +1,6 @@
-import { conformite, joursEntre } from './domain'
+import { AVANTAGES, conformite, etatPiece, joursEntre, niveauPour, scoreDepuisCriteres, type Fiabilite } from './domain'
 import type { Etat } from './store'
-import { contratsDuRemplacant, nbFilleulsActifs, recosVers } from './store'
+import { contratsDuRemplacant, recosVers } from './store'
 import type { Account } from './types'
 
 /**
@@ -85,19 +85,9 @@ export const BADGES: Badge[] = [
     condition: (a, e) => recosVers(e, a.id).length >= 3,
   },
   {
-    key: 'confrere', nom: 'Confrère', emoji: '🔗', pour: 'tous',
-    description: 'Un premier filleul actif : vous avez agrandi le cercle.',
-    condition: (a, e) => nbFilleulsActifs(e, a.id) >= 1,
-  },
-  {
-    key: 'referent', nom: 'Référent', emoji: '🌱', pour: 'tous',
-    description: 'Trois filleuls actifs. Vous voyez les nouveaux remplaçants 24 h avant les autres.',
-    condition: (a, e) => nbFilleulsActifs(e, a.id) >= 3,
-  },
-  {
-    key: 'pilier', nom: 'Pilier', emoji: '🏛️', pour: 'tous',
-    description: 'Sept filleuls actifs. Relève est offert tant qu’ils le restent.',
-    condition: (a, e) => nbFilleulsActifs(e, a.id) >= 7,
+    key: 'cercle', nom: 'Cercle ouvert', emoji: '🔗', pour: 'tous',
+    description: 'Un confrère invité par vous a signé son premier contrat. Un mois offert pour chacun.',
+    condition: (a, e) => e.invitations.some(i => i.parId === a.id && i.actifLe),
   },
 ]
 
@@ -122,4 +112,79 @@ export function joursDeReposSecurises(a: Account, e: Etat): number {
     .map(c => e.missions.find(m => m.id === c.missionId))
     .filter((m): m is NonNullable<typeof m> => !!m && new Date(m.du).getFullYear() === annee)
     .reduce((s, m) => s + joursEntre(m.du, m.au) + 1, 0)
+}
+
+/**
+ * Fiabilité : composée uniquement d'actes vérifiables sur la plateforme.
+ * Aucun critère ne dépend du nombre de personnes recrutées.
+ */
+export function fiabilite(a: Account, e: Etat): Fiabilite {
+  const criteres: Fiabilite['criteres'] = []
+  if (a.role === 'cabinet') {
+    const signes = e.contrats.filter(c => c.cabinetId === a.id && c.signatureTitulaire && c.signatureRemplacant)
+    const missions = signes.map(c => e.missions.find(m => m.id === c.missionId)!).filter(Boolean)
+    const aTemps = signes.filter(c => { const m = e.missions.find(x => x.id === c.missionId); return m && c.transmisCDOILe && c.transmisCDOILe.slice(0, 10) <= m.du }).length
+    criteres.push({ label: 'Contrat transmis à l’Ordre avant le début', ok: aTemps, total: signes.length, poids: 30 })
+    const lignes = e.lignes.filter(l => signes.some(c => c.id === l.contratId) && (l.payeeLe || l.echeance < new Date().toISOString().slice(0, 10)))
+    const reglees = lignes.filter(l => l.payeeLe && l.payeeLe.slice(0, 10) <= l.echeance).length
+    criteres.push({ label: 'Rétrocession reversée avant l’échéance', ok: reglees, total: lignes.length, poids: 30 })
+    const commencees = missions.filter(m => m.du <= new Date().toISOString().slice(0, 10))
+    const fiches = commencees.filter(m => { const f = e.fiches.find(x => x.missionId === m.id); return f && f.patients.length >= 3 && f.consignes }).length
+    criteres.push({ label: 'Fiche de passation complète', ok: fiches, total: commencees.length, poids: 20 })
+    const terminees = missions.filter(m => m.au < new Date().toISOString().slice(0, 10))
+    const recos = terminees.filter(m => e.recos.some(r => r.deId === a.id && signes.some(c => c.id === r.contratId && c.missionId === m.id))).length
+    criteres.push({ label: 'Recommandation laissée après le remplacement', ok: recos, total: terminees.length, poids: 20 })
+  } else {
+    const conf = conformite(a)
+    criteres.push({ label: 'Pièces critiques valides', ok: conf.verifie ? 1 : 0, total: 1, poids: 30 })
+    const aJour = (a.pieces ?? []).filter(p => etatPiece(p) === 'valide').length
+    criteres.push({ label: 'Pièces à jour, sans échéance proche', ok: aJour, total: Math.max(1, (a.pieces ?? []).length), poids: 10 })
+    const contrats = contratsDuRemplacant(e, a.id)
+    criteres.push({ label: 'Remplacements menés à terme', ok: Math.min(3, contrats.filter(x => x.mission.au < new Date().toISOString().slice(0, 10)).length), total: 3, poids: 30 })
+    criteres.push({ label: 'Recommandations vérifiées reçues', ok: Math.min(3, recosVers(e, a.id).length), total: 3, poids: 30 })
+  }
+  const score = scoreDepuisCriteres(criteres)
+  const niveau = niveauPour(score)
+  return { score, niveau, criteres, avantage: AVANTAGES[niveau] }
+}
+
+export interface Evenement { le: string; texte: string; type: 'contrat' | 'annonce' | 'reco' | 'dossier' | 'cercle' }
+
+const initiale = (a?: Account) => a ? `${a.prenom} ${a.nom[0]}.` : 'Un confrère'
+const cab = (a?: Account) => a?.nomCabinet ?? initiale(a)
+
+/** Le pouls d'un département : ce qui s'y est passé récemment, sans rien inventer. */
+export function pouls(e: Etat, departement: string): Evenement[] {
+  const dans = (id?: string) => { const a = e.accounts.find(x => x.id === id); return a?.departement === departement ? a : undefined }
+  const out: Evenement[] = []
+  for (const c of e.contrats) {
+    if (!c.signatureTitulaire || !c.signatureRemplacant) continue
+    const cabinet = dans(c.cabinetId); const r = e.accounts.find(x => x.id === c.remplacantId)
+    const m = e.missions.find(x => x.id === c.missionId)
+    if (cabinet && m) out.push({ le: [c.signatureTitulaire.le, c.signatureRemplacant.le].sort()[1], type: 'contrat', texte: `${cab(cabinet)} et ${initiale(r)} ont signé un remplacement de ${joursEntre(m.du, m.au) + 1} jours` })
+  }
+  for (const m of e.missions) {
+    const cabinet = dans(m.cabinetId)
+    if (cabinet && m.statut === 'publiee' && m.publieeLe) out.push({ le: m.publieeLe, type: 'annonce', texte: `${cab(cabinet)} cherche un remplaçant du ${new Date(m.du).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })} au ${new Date(m.au).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}` })
+  }
+  for (const r of e.recos) {
+    const de = dans(r.deId); const vers = e.accounts.find(x => x.id === r.versId)
+    if (de) out.push({ le: r.le, type: 'reco', texte: `${cab(de)} a recommandé ${initiale(vers)}` })
+  }
+  for (const a of e.accounts) {
+    if (a.role === 'remplacant' && a.departement === departement && conformite(a).verifie) out.push({ le: a.creeLe, type: 'dossier', texte: `${initiale(a)} a complété son dossier de confiance` })
+  }
+  for (const i of e.invitations) {
+    const parrain = dans(i.parId); const f = e.accounts.find(x => x.id === i.filleulId)
+    if (parrain && i.actifLe) out.push({ le: i.actifLe, type: 'cercle', texte: `${initiale(f)} a rejoint le cercle de ${initiale(parrain)}` })
+  }
+  return out.sort((x, y) => y.le.localeCompare(x.le))
+}
+
+export function ilYA(iso: string): string {
+  const j = joursEntre(new Date(iso), new Date())
+  if (j <= 0) { const h = Math.max(1, Math.round((Date.now() - new Date(iso).getTime()) / 3_600_000)); return h < 24 ? `il y a ${h} h` : 'hier' }
+  if (j === 1) return 'hier'
+  if (j < 30) return `il y a ${j} j`
+  return `il y a ${Math.round(j / 30)} mois`
 }

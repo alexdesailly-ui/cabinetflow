@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Btn, Chips, Field, Ic, Steps, Toggle, useToast } from '../components/ui'
+import { Btn, Chips, Field, Ic, Repere, Steps, Toggle, useToast } from '../components/ui'
 import { enregistrerMission, publierMission } from '../lib/actions'
 import { dansNJours, estimerRetrocession, euros, joursEntre } from '../lib/domain'
 import { go } from '../lib/router'
@@ -53,6 +53,7 @@ export function MissionNew({ moi }: { moi: Account }) {
         <h1>{['Quand et pourquoi', 'La tournée', 'La rétrocession'][etape]}</h1>
         <Steps total={3} done={etape} now={etape} />
       </div>
+      {etape === 0 && <Repere k="mission-new">Trois écrans : les dates, la tournée, la rétrocession. Le remplaçant verra ce qu’il touchera net avant de répondre.</Repere>}
 
       {etape === 0 && (
         <div className="card stack">

@@ -61,16 +61,9 @@ export function Landing() {
         </div>
       </section>
 
-      <section className="stack">
-        <p className="eyebrow">Pourquoi les cabinets le recommandent</p>
-        <div className="card stack">
-          <p className="quote">« J’ai pris trois semaines cet été pour la première fois en onze ans. Le contrat était parti à l’Ordre avant même que j’y pense. »</p>
-          <p className="small muted">Titulaire fictive, pour illustrer l’usage — les témoignages réels viendront des premiers cabinets pilotes.</p>
-        </div>
-        <div className="card encre stack">
-          <div className="row"><Ic.gift className="" /><h3>Parrainez un confrère, gagnez ce qui ne s’achète pas</h3></div>
-          <p className="muted">Un mois offert pour vous et pour lui, puis un accès prioritaire aux nouveaux remplaçants de votre département. Les bons remplaçants partent tôt : être vu en premier compte plus qu’une remise.</p>
-        </div>
+      <section className="card encre stack">
+        <h3>Inviter un confrère : un mois offert pour chacun</h3>
+        <p className="muted">Ni paliers ni classement. Ce qui donne l’accès prioritaire aux remplaçants, c’est la fiabilité : contrat transmis à temps, rétrocession réglée à l’heure, passation soignée.</p>
       </section>
 
       <section className="grid-2">
