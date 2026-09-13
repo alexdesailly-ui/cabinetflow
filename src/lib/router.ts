@@ -63,6 +63,9 @@ export function useRoute(): Route {
   useEffect(() => {
     const h = () => setR(parse())
     window.addEventListener('hashchange', h)
+    // Relecture au montage : un changement d'adresse survenu avant que
+    // l'écouteur soit en place ne doit pas laisser l'écran vide.
+    h()
     return () => window.removeEventListener('hashchange', h)
   }, [])
   return r

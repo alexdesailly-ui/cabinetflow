@@ -44,9 +44,13 @@ function Shell() {
     setTimeout(() => { enCours.current = false }, 50)
   }, [e, moi, toast])
 
+  // Les redirections se font après le montage : naviguer pendant le rendu
+  // initial partirait avant que l'écouteur de navigation soit en place, et
+  // l'écran resterait vide jusqu'au rafraîchissement.
   const publique = route.name === 'landing' || route.name === 'invite' || route.name === 'onboarding'
-  if (!moi && !publique) { go({ name: 'landing' }); return null }
-  if (moi && (route.name === 'landing')) { go({ name: 'home' }); return null }
+  const redirection: 'landing' | 'home' | null = !moi && !publique ? 'landing' : moi && route.name === 'landing' ? 'home' : null
+  useEffect(() => { if (redirection) go({ name: redirection }) }, [redirection])
+  if (redirection) return null
 
   return (
     <div className={`shell ${moi ? 'app' : ''}`}>
