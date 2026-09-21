@@ -5,6 +5,7 @@ import { PLAFOND_MOIS_OFFERTS_PAR_AN, formatDate, lienParrainage } from '../lib/
 import { fiabilite, pouls } from '../lib/gamification'
 import { compte, invitationsDe, useStore } from '../lib/store'
 import type { Account, Invitation } from '../lib/types'
+import { Logo } from '../components/Logo'
 
 /**
  * Le cercle : les gens avec qui l'on a réellement travaillé, plus ceux
@@ -109,6 +110,7 @@ export function Parrainage({ moi }: { moi: Account }) {
       </Modal>
       <Modal open={modal === 'affiche'} onClose={() => setModal(null)}>
         <div className="stack" style={{ alignItems: 'center', textAlign: 'center', padding: '8px 0' }}>
+          <Logo size={34} />
           <h1 style={{ fontSize: '1.6rem' }}>Vous cherchez un remplaçant ?</h1>
           <p className="muted">{moi.prenom} {moi.nom}{moi.nomCabinet ? ` · ${moi.nomCabinet}` : ''} vous offre un mois de Relève.</p>
           <QR text={lien} />

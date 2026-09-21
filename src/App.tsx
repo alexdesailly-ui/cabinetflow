@@ -18,6 +18,7 @@ import { RemplacantProfil, Vivier } from './screens/Vivier'
 import { Avis, lireAvis, partagerAvis } from './screens/Demo'
 import { useState } from 'react'
 import { reinitialiserReperes } from './components/ui'
+import { Logo } from './components/Logo'
 
 export default function App() {
   return <ToastProvider><Shell /></ToastProvider>
@@ -56,7 +57,7 @@ function Shell() {
     <div className={`shell ${moi ? 'app' : ''}`}>
       <header className="topbar">
         <div className="topbar-in">
-          <a className="brand" href="#/" onClick={ev => { ev.preventDefault(); go({ name: moi ? 'home' : 'landing' }) }}><span className="brand-mark">R</span>Relève</a>
+          <a className="brand" href="#/" onClick={ev => { ev.preventDefault(); go({ name: moi ? 'home' : 'landing' }) }} aria-label="Relève, accueil"><Logo size={26} /></a>
           <span className="spacer" />
           {moi ? (
             <button className="row" style={{ background: 'none', border: 0, cursor: 'pointer', gap: 8 }} onClick={() => go({ name: 'compte' })} aria-label="Mon compte">

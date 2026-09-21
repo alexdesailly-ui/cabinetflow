@@ -72,7 +72,6 @@ input, select, textarea { font: inherit; color: inherit; }
 .topbar { position: sticky; top: 0; z-index: 20; background: var(--surface); border-bottom: 1px solid var(--border); }
 .topbar-in { max-width: 1120px; margin: 0 auto; padding: 0 16px; height: 52px; display: flex; align-items: center; gap: 12px; }
 .brand { display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--text); font-weight: 700; font-size: 1.05rem; letter-spacing: -.01em; }
-.brand-mark { width: 26px; height: 26px; border-radius: 7px; background: var(--accent); display: grid; place-items: center; color: #fff; font-size: 13px; font-weight: 700; }
 .topbar .spacer { flex: 1; }
 .main { flex: 1; width: 100%; max-width: 1120px; margin: 0 auto; padding: 16px 16px 92px; }
 .nav { position: fixed; bottom: 0; left: 0; right: 0; z-index: 20; background: var(--surface); border-top: 1px solid var(--border); padding-bottom: env(safe-area-inset-bottom); }
@@ -278,7 +277,7 @@ td.r, th.r { text-align: right; }
 
 /* Repères et vitalité --------------------------------------------------------- */
 .ic { width: 1.15em; height: 1.15em; flex-shrink: 0; vertical-align: -0.2em; }
-.repere { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: var(--r-s); background: var(--surface); border: 1px dashed var(--accent); color: var(--text-2); font-size: .85rem; }
+.repere { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: var(--r-s); background: var(--accent-soft); border: 1px solid transparent; color: var(--accent-text); font-size: .85rem; }
 .repere-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); flex-shrink: 0; animation: battre 1.6s ease-in-out infinite; }
 .repere-x { background: none; border: 0; color: var(--accent-text); font-weight: 600; cursor: pointer; font-size: .82rem; padding: 2px 4px; }
 @keyframes battre { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.5); opacity: .5; } }
@@ -300,3 +299,16 @@ td.r, th.r { text-align: right; }
 .crit .bar { flex: 1; height: 5px; }
 .empty { text-align: center; padding: 28px 16px; color: var(--text-2); display: flex; flex-direction: column; align-items: center; gap: 8px; }
 .empty .ic { width: 28px; height: 28px; color: var(--text-3); }
+
+/* Accueil public : choix du rôle ------------------------------------------ */
+.roles { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+.role { text-align: left; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 16px; cursor: pointer; display: flex; flex-direction: column; gap: 6px; transition: border-color .12s, box-shadow .12s; font: inherit; color: var(--text); }
+.role:hover { border-color: var(--accent); box-shadow: var(--shadow); }
+.role .t { font-weight: 700; font-size: 1.05rem; display: flex; align-items: center; gap: 8px; }
+.role .t .ic { color: var(--accent-text); }
+.role .d { font-size: .875rem; color: var(--text-2); }
+.role .p { font-size: .8rem; font-weight: 600; color: var(--accent-text); margin-top: 4px; }
+.footer { border-top: 1px solid var(--border); padding-top: 16px; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; color: var(--text-3); font-size: .8rem; }
+.item.wrap { flex-wrap: wrap; }
+.item.wrap .grow { flex-basis: 220px; }
+@media (max-width: 600px) { .item.wrap .row { width: 100%; } .item.wrap .row .btn { flex: 1; } }
