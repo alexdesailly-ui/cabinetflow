@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { Avatar, Btn, Ic, Pill, Repere, ToastProvider, useToast } from './components/ui'
+import { Avatar, Btn, Ic, Pill, ToastProvider, useToast } from './components/ui'
 import { attribuerBadges, seConnecter, seDeconnecter } from './lib/actions'
 import { formatDate } from './lib/domain'
 import { BADGES, badgesPour, nouveauxBadges } from './lib/gamification'

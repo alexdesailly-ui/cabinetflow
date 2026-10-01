@@ -13,6 +13,13 @@ export function MissionDetail({ id, moi, ongletInitial }: { id: string; moi: Acc
   const e = useStore()
   const m = e.missions.find(x => x.id === id)
   if (!m) return <div className="card">Ce remplacement n’existe plus. <button className="linkbtn" onClick={() => go({ name: 'home' })}>Retour</button></div>
+  // Composant séparé : ses hooks ne dépendent plus de l'existence de la mission
+  // (en mode cloud, elle peut apparaître après le premier rendu).
+  return <MissionDetailCharge key={m.id} m={m} moi={moi} ongletInitial={ongletInitial} />
+}
+
+function MissionDetailCharge({ m, moi, ongletInitial }: { m: Mission; moi: Account; ongletInitial?: string }) {
+  const e = useStore()
   const cabinet = compte(e, m.cabinetId)!
   const estCabinet = moi.id === m.cabinetId
   const c = contratDeMission(e, m.id)
