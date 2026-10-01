@@ -2,6 +2,8 @@
 
 Démo en ligne : https://alexdesailly-ui.github.io/cabinetflow/
 
+À coller dans WhatsApp (ouvre directement le cabinet de démo, avec aperçu illustré) : https://alexdesailly-ui.github.io/cabinetflow/?demo=cabinet
+
 ## Le principe
 
 Pas de script. On tend le téléphone et on se tait. L'interface doit se comprendre seule : des repères d'une ligne apparaissent une fois à l'endroit du geste attendu, et l'action suivante pulse. Si la personne demande « je fais quoi ? », c'est un défaut d'interface à noter, pas une question à laquelle répondre.
