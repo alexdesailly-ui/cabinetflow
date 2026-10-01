@@ -1,8 +1,8 @@
 # Relève — faire tester
 
-Démo en ligne : https://alexdesailly-ui.github.io/cabinetflow/
+Démo en ligne : https://cabinetflow.fr
 
-À coller dans WhatsApp (ouvre directement le cabinet de démo, avec aperçu illustré) : https://alexdesailly-ui.github.io/cabinetflow/?demo=cabinet
+À coller dans WhatsApp (ouvre directement le cabinet de démo, avec aperçu illustré) : https://cabinetflow.fr/?demo=cabinet
 
 ## Le principe
 

@@ -8,7 +8,7 @@ Le raisonnement marché, le modèle économique et la mécanique virale sont dé
 
 ## Tester
 
-**Démo en ligne : https://alexdesailly-ui.github.io/cabinetflow/** — lien direct pour WhatsApp : `…/cabinetflow/?demo=cabinet` (ou `?demo=remplacant`).
+**En ligne : https://cabinetflow.fr** (Hostinger) — lien direct pour WhatsApp : `https://cabinetflow.fr/?demo=cabinet` (ou `?demo=remplacant`).
 
 Deux modes, choisis au build :
 
@@ -51,7 +51,7 @@ npm run dev                  # http://localhost:5173
 5. Auth → Email : connexion par OTP, longueur 6 ; modèle « Magic Link » avec `{{ .Token }}` (voir `supabase/templates/code.html`) ; **SMTP personnalisé** (Resend…) indispensable au-delà de quelques emails par heure.
 6. Auth → URL Configuration : URL du site = URL de la prod.
 7. GitHub → Settings → Variables : `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`.
-8. Actions → « Déployer la prod » → Run workflow → taper `DEPLOYER`.
+8. Actions → « Déployer la prod (Hostinger) » → Run workflow → taper `DEPLOYER`.
 
 ## Déploiement
 
@@ -59,7 +59,8 @@ npm run dev                  # http://localhost:5173
 |---|---|---|
 | CI (`ci.yml`) | Chaque PR et push sur `main` | Lint, types, tests, build, budget de taille, tests SQL, typage Deno, scan de secrets |
 | Preview (`preview.yml`) | Chaque PR | Cloudflare Pages, actif dès que les secrets `CLOUDFLARE_API_TOKEN` et `CLOUDFLARE_ACCOUNT_ID` existent |
-| Prod (`pages.yml`) | **Manuel uniquement** | Actions → « Déployer la prod », confirmation `DEPLOYER`, branche `main` |
+| Prod (`deploy-hostinger.yml`) | **Manuel uniquement** | Actions → « Déployer la prod (Hostinger) », confirmation `DEPLOYER`, branche `main` → https://cabinetflow.fr (FTP, secret `FTP_PASS` ; en-têtes de sécurité dans `public/.htaccess`) |
+| Secours (`pages.yml`) | Manuel uniquement | GitHub Pages, à n'utiliser que si Hostinger est indisponible (conditions GitHub : pas d'usage SaaS commercial) |
 
 ## Architecture
 

@@ -28,7 +28,7 @@ Clés : uniquement en variables d'environnement (secrets Supabase), jamais dans 
    supabase functions deploy stripe-portal
    supabase functions deploy stripe-webhook --no-verify-jwt
    supabase secrets set STRIPE_SECRET_KEY=sk_test_... STRIPE_PRICE_MENSUEL=price_... \
-     STRIPE_PRICE_ANNUEL=price_... APP_URL=https://alexdesailly-ui.github.io/cabinetflow/
+     STRIPE_PRICE_ANNUEL=price_... APP_URL=https://cabinetflow.fr/
    ```
 6. *Développeurs → Webhooks* → endpoint `https://<projet>.supabase.co/functions/v1/stripe-webhook`, événements : `checkout.session.completed`, `customer.subscription.created|updated|deleted|trial_will_end`, `invoice.paid`, `invoice.payment_failed`. Copier le secret : `supabase secrets set STRIPE_WEBHOOK_SECRET=whsec_...`.
 7. Tester : carte `4242 4242 4242 4242` (succès), `4000 0000 0000 0341` (échec au renouvellement), puis `stripe trigger invoice.payment_failed`.
