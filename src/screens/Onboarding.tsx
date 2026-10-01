@@ -3,12 +3,17 @@ import { Btn, Chips, Field, Ic, PageHeader, Pill, Stepper, Steps, Toggle } from 
 import { creerCompte } from '../lib/actions'
 import { go } from '../lib/router'
 import { SOINS } from '../lib/seed'
-import { useStore } from '../lib/store'
+import { MODE_CLOUD } from '../lib/cloud/config'
+import { creerCompteCloud, memoriserInscription, ouvrirSession, supabase, type Inscription } from '../lib/cloud/auth'
+import { useParrain } from '../lib/cloud/parrain'
+import { useToast } from '../components/ui'
 import type { Role } from '../lib/types'
 
 export function Onboarding({ role, parrain }: { role: Role; parrain?: string }) {
-  const e = useStore()
-  const parrainCompte = e.accounts.find(a => a.codeParrain === parrain)
+  const parrainCompte = useParrain(parrain)
+  const { toast } = useToast()
+  const [enCours, setEnCours] = useState(false)
+  const [cgu, setCgu] = useState(false)
   const [etape, setEtape] = useState(0)
   const [f, setF] = useState({
     prenom: '', nom: '', email: '', telephone: '', ville: '', codePostal: '',
@@ -19,7 +24,32 @@ export function Onboarding({ role, parrain }: { role: Role; parrain?: string }) 
   const total = 2
   const valide0 = f.prenom && f.nom && f.email.includes('@') && f.codePostal.length === 5 && f.ville
 
-  const terminer = () => {
+  const terminer = async () => {
+    if (MODE_CLOUD) {
+      const donnees = {
+        prenom: f.prenom.trim(), nom: f.nom.trim(), email: f.email.trim().toLowerCase(), telephone: f.telephone, ville: f.ville.trim(), codePostal: f.codePostal,
+        ...(role === 'cabinet'
+          ? { nomCabinet: f.nomCabinet || `Cabinet ${f.nom.trim()}`, nbTitulaires: f.nbTitulaires, patientsTournee: f.patientsTournee, caJournalierMoyen: f.caJournalierMoyen }
+          : { rayonKm: f.rayonKm, vehicule: f.vehicule, anneesExperience: f.anneesExperience, soinsMaitrises: f.soins }),
+      }
+      const inscription: Inscription = { role, donnees, parrain }
+      setEnCours(true)
+      try {
+        const { data: { session } } = await supabase().auth.getSession()
+        if (session) {
+          // Déjà authentifié (code validé sans profil) : on crée le compte tout de suite.
+          await creerCompteCloud(inscription)
+          await ouvrirSession()
+          go({ name: 'home' })
+        } else {
+          memoriserInscription(inscription)
+          go({ name: 'connexion', email: donnees.email })
+        }
+      } catch (err) {
+        toast(err instanceof Error ? err.message : String(err))
+      } finally { setEnCours(false) }
+      return
+    }
     creerCompte({
       role, prenom: f.prenom.trim(), nom: f.nom.trim(), email: f.email.trim(), telephone: f.telephone, ville: f.ville, codePostal: f.codePostal,
       parrainePar: parrain,
@@ -64,7 +94,8 @@ export function Onboarding({ role, parrain }: { role: Role; parrain?: string }) 
             <Field label="Patients par tournée"><Stepper id="ob-pat" value={f.patientsTournee} min={1} max={80} onChange={v => set('patientsTournee', v)} /></Field>
           </div>
           <Field label="CA journalier moyen d’une tournée" hint="Pré-remplit l’estimation de rétrocession. Modifiable à chaque demande."><Stepper id="ob-ca" value={f.caJournalierMoyen} min={100} max={2000} step={10} unit="€" onChange={v => set('caJournalierMoyen', v)} /></Field>
-          <Btn block variant="encre" onClick={terminer}>Ouvrir mon espace cabinet <Ic.chevron /></Btn>
+          <Cgu value={cgu} onChange={setCgu} />
+          <Btn block variant="encre" disabled={!cgu || enCours} onClick={terminer}>{MODE_CLOUD ? 'Recevoir mon code de connexion' : 'Ouvrir mon espace cabinet'} <Ic.chevron /></Btn>
         </div>
       )}
 
@@ -76,10 +107,20 @@ export function Onboarding({ role, parrain }: { role: Role; parrain?: string }) 
           </div>
           <Toggle label="Je suis véhiculé·e" value={f.vehicule} onChange={v => set('vehicule', v)} />
           <Field label="Soins que vous maîtrisez" hint="Les cabinets filtrent dessus. Restez honnête : ça se vérifie en passation."><Chips options={SOINS} value={f.soins} onChange={v => set('soins', v)} /></Field>
-          <Btn block variant="encre" onClick={terminer}>Ouvrir mon espace <Ic.chevron /></Btn>
+          <Cgu value={cgu} onChange={setCgu} />
+          <Btn block variant="encre" disabled={!cgu || enCours} onClick={terminer}>{MODE_CLOUD ? 'Recevoir mon code de connexion' : 'Ouvrir mon espace'} <Ic.chevron /></Btn>
           <p className="tiny muted">Prochaine étape : votre dossier de confiance (autorisation de remplacement, RCP…). Il vous rend visible des cabinets.</p>
         </div>
       )}
     </div>
+  )
+}
+
+function Cgu({ value, onChange }: { value: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <label className="row small" style={{ gap: 8, alignItems: 'flex-start', cursor: 'pointer' }}>
+      <input id="ob-cgu" type="checkbox" checked={value} onChange={ev => onChange(ev.target.checked)} style={{ marginTop: 3 }} />
+      <span>J’accepte les <a href="#/legal/cgu" target="_blank">conditions d’utilisation</a> et j’ai lu la <a href="#/legal/confidentialite" target="_blank">politique de confidentialité</a>. Je ne saisirai aucune donnée de patient.</span>
+    </label>
   )
 }

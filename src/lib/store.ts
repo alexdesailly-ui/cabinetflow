@@ -26,6 +26,16 @@ export interface Etat {
   badges: Record<string, { key: string; le: string }[]>
   /** Date à laquelle la démo a été générée : permet de dater les alertes. */
   seedeLe?: string
+  /** Présent uniquement en mode cloud (compte réel). */
+  cloud?: EtatCloud
+}
+
+export interface EtatCloud {
+  email?: string
+  /** Scénario A/B de DONNEES_SANTE.md : la liste de patients est-elle autorisée côté serveur ? */
+  fichePatientsAutorises: boolean
+  abonnement?: { statut: string; intervalle?: string; finPeriode?: string; annulationFinPeriode: boolean }
+  synchronisation: 'ok' | 'en-cours' | 'erreur'
 }
 
 const CLE = 'releve:v1'
@@ -52,19 +62,60 @@ function lire(): Etat {
 let etat: Etat = lire()
 const abonnes = new Set<() => void>()
 
+/**
+ * Mode démo : l'état est persisté dans le navigateur.
+ * Mode cloud : l'état est un cache en mémoire de ce que Supabase autorise à voir,
+ * et chaque mutation est transmise à `observateur` (src/lib/cloud/sync.ts).
+ * Rien n'est écrit dans localStorage en mode cloud : un téléphone partagé ne
+ * garde aucune donnée d'un compte réel.
+ */
+let persister = true
+let observateur: ((avant: Etat, apres: Etat) => void) | null = null
+let identifiantsUuid = false
+
 function ecrire() {
-  try { localStorage.setItem(CLE, JSON.stringify(etat)) } catch { /* mode privé : on continue en mémoire */ }
+  if (persister) {
+    try { localStorage.setItem(CLE, JSON.stringify(etat)) } catch { /* mode privé : on continue en mémoire */ }
+  }
   abonnes.forEach(f => f())
 }
 
 export function getEtat(): Etat { return etat }
 
 export function mutate(fn: (e: Etat) => Etat | void) {
+  const avant = etat
   const copie: Etat = JSON.parse(JSON.stringify(etat))
   const resultat = fn(copie)
   etat = resultat ?? copie
   ecrire()
+  observateur?.(avant, etat)
 }
+
+/** Bascule en mode cloud avec un état chargé depuis le serveur. */
+export function passerEnCloud(initial: Etat, obs: (avant: Etat, apres: Etat) => void) {
+  persister = false
+  identifiantsUuid = true
+  observateur = obs
+  etat = initial
+  ecrire()
+}
+
+/** Remplace l'état sans déclencher de synchronisation (rechargement depuis le serveur). */
+export function remplacerEtat(e: Etat) {
+  etat = e
+  ecrire()
+}
+
+/** Retour au mode démo local (déconnexion d'un compte réel). */
+export function passerEnDemo() {
+  persister = true
+  identifiantsUuid = false
+  observateur = null
+  etat = lire()
+  ecrire()
+}
+
+export function enModeCloud(): boolean { return !persister }
 
 export function reinitialiser() {
   etat = { ...vide }
@@ -79,6 +130,8 @@ export function useStore(): Etat {
 }
 
 export function id(prefixe = ''): string {
+  // En mode cloud, les identifiants sont des UUID (clés primaires Postgres).
+  if (identifiantsUuid) return crypto.randomUUID()
   return prefixe + Math.random().toString(36).slice(2, 8) + Date.now().toString(36).slice(-3)
 }
 
@@ -119,4 +172,8 @@ export function nbFilleulsActifs(e: Etat, idCompte: string): number {
 
 export function contratDeMission(e: Etat, missionId: string): Contrat | undefined {
   return e.contrats.find(c => c.missionId === missionId)
+}
+
+export function etatVide(): Etat {
+  return { ...vide, accounts: [], missions: [], candidatures: [], contrats: [], lignes: [], recos: [], fiches: [], invitations: [], badges: {} }
 }

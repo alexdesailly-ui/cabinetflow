@@ -271,6 +271,8 @@ function Passation({ m, c, estCabinet }: { m: Mission; c?: Contrat; estCabinet: 
   const modele = e.fiches.filter(f => f.missionId !== m.id && e.missions.find(x => x.id === f.missionId)?.cabinetId === m.cabinetId).sort((a, b) => b.majLe.localeCompare(a.majLe))[0]
   const [edit, setEdit] = useState(!fiche && estCabinet)
   const [f, setF] = useState(() => fiche ?? { missionId: m.id, patients: [] as PatientTournee[], accesCabinet: '', pharmacie: '', medecinReferent: '', consignes: '', majLe: '' })
+  // Scénario A (DONNEES_SANTE.md) : en mode cloud, la liste des patients n'est pas hébergée.
+  const patientsAutorises = !e.cloud || e.cloud.fichePatientsAutorises
   const complet = !!(c?.signatureTitulaire && c?.signatureRemplacant)
   const visibleRemplacant = complet && joursEntre(new Date(), m.du) <= 7 && joursEntre(new Date(), m.au) >= -3
 
@@ -286,8 +288,9 @@ function Passation({ m, c, estCabinet }: { m: Mission; c?: Contrat; estCabinet: 
   if (edit) return (
     <div className="stack">
       <div className="card warn small"><strong>Jamais de nom complet ni de donnée médicale identifiante.</strong> Initiales, rue, créneau, soins : ce qu’il faut pour tourner, rien de plus. La fiche n’est visible du remplaçant que pendant le remplacement.</div>
-      {modele && f.patients.length === 0 && <Btn variant="soft" onClick={() => setF({ ...f, patients: modele.patients, accesCabinet: modele.accesCabinet, pharmacie: modele.pharmacie, medecinReferent: modele.medecinReferent, consignes: modele.consignes })}>Reprendre la fiche du dernier remplacement ({modele.patients.length} patients)</Btn>}
-      <div className="card stack">
+      {modele && f.patients.length === 0 && <Btn variant="soft" onClick={() => setF({ ...f, patients: patientsAutorises ? modele.patients ?? [] : [], accesCabinet: modele.accesCabinet, pharmacie: modele.pharmacie, medecinReferent: modele.medecinReferent, consignes: modele.consignes })}>Reprendre la fiche du dernier remplacement ({modele.patients.length} patients)</Btn>}
+      {!patientsAutorises && <div className="card accent small"><strong>La liste des patients reste dans votre logiciel de facturation.</strong> Relève n’héberge aucune donnée de santé : notez ici l’organisation (accès, pharmacie, consignes générales) et transmettez la tournée au remplaçant par votre outil habituel.</div>}
+      {patientsAutorises && <div className="card stack">
         <h3>Tournée</h3>
         {f.patients.map((p, i) => (
           <div key={p.id} className="stack" style={{ gap: 6, paddingBottom: 10, borderBottom: '1px solid var(--ligne)' }}>
@@ -302,7 +305,7 @@ function Passation({ m, c, estCabinet }: { m: Mission; c?: Contrat; estCabinet: 
           </div>
         ))}
         <Btn variant="ghost" size="sm" icon={Ic.plus} onClick={ajouter}>Ajouter un patient</Btn>
-      </div>
+      </div>}
       <div className="card stack">
         <h3>Autour de la tournée</h3>
         <Field label="Accès au cabinet et au matériel"><input id="f-acces" className="input" value={f.accesCabinet} onChange={ev => setF({ ...f, accesCabinet: ev.target.value })} /></Field>
@@ -314,7 +317,7 @@ function Passation({ m, c, estCabinet }: { m: Mission; c?: Contrat; estCabinet: 
     </div>
   )
 
-  const ff = fiche!
+  const ff = { ...fiche!, patients: fiche!.patients ?? [] }
   const dureeTotale = ff.patients.reduce((s, p) => s + p.duree, 0)
   return (
     <div className="stack">
@@ -322,7 +325,7 @@ function Passation({ m, c, estCabinet }: { m: Mission; c?: Contrat; estCabinet: 
         <div className="small muted">{ff.patients.length} patients · ≈ {Math.round(dureeTotale / 60 * 10) / 10} h de soins · mise à jour {formatDate(ff.majLe)}</div>
         <div className="row">{estCabinet && <Btn size="sm" variant="ghost" onClick={() => { setF(ff); setEdit(true) }}>Modifier</Btn>}<Btn size="sm" variant="ghost" icon={Ic.print} onClick={() => window.print()}>Imprimer</Btn></div>
       </div>
-      <div className="list card" style={{ paddingTop: 4, paddingBottom: 4 }}>
+      {ff.patients.length > 0 && <div className="list card" style={{ paddingTop: 4, paddingBottom: 4 }}>
         {ff.patients.map(p => (
           <div key={p.id} className="item" style={{ alignItems: 'flex-start' }}>
             <div className="num display" style={{ width: 56, fontWeight: 700, color: 'var(--encre)' }}>{p.creneau}</div>
@@ -333,7 +336,7 @@ function Passation({ m, c, estCabinet }: { m: Mission; c?: Contrat; estCabinet: 
             </div>
           </div>
         ))}
-      </div>
+      </div>}
       <div className="card stack small">
         {ff.accesCabinet && <div><strong>Accès :</strong> {ff.accesCabinet}</div>}
         {ff.medecinReferent && <div><strong>Médecin :</strong> {ff.medecinReferent}</div>}
