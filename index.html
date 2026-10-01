@@ -11,6 +11,21 @@
     <link rel="apple-touch-icon" href="apple-touch-icon.png" />
     <link rel="manifest" href="manifest.webmanifest" />
     <title>Relève — le remplacement infirmier, sans la charge mentale</title>
+    <!-- Sécurité : aucun script ni connexion vers un domaine tiers (hors Supabase). -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; base-uri 'self'; form-action 'self'; object-src 'none'" />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+    <!-- Aperçu du lien dans WhatsApp, SMS, LinkedIn : l'image doit être en URL absolue. -->
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="fr_FR" />
+    <meta property="og:site_name" content="Relève" />
+    <meta property="og:title" content="Relève — le remplacement infirmier, sans la charge mentale" />
+    <meta property="og:description" content="Remplaçant vérifié, rétrocession calculée, contrat conforme transmis à l’Ordre. Essayez la démo en 30 secondes, sans compte." />
+    <meta property="og:url" content="https://alexdesailly-ui.github.io/cabinetflow/" />
+    <meta property="og:image" content="https://alexdesailly-ui.github.io/cabinetflow/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Relève : le remplacement infirmier libéral" />
+    <meta name="twitter:card" content="summary_large_image" />
   </head>
   <body>
     <div id="root"></div>

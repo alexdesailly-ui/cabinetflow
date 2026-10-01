@@ -1,0 +1,10 @@
+# Règles par défaut de gitleaks + exceptions documentées.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Valeurs factices documentées (exemples, clé de test du shim SQL)"
+paths = [
+  '''\.env\.example$''',
+  '''supabase/tests/shim/supabase_shim\.sql$''',
+]
