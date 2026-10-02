@@ -66,7 +66,7 @@ PR : **https://github.com/alexdesailly-ui/cabinetflow/pull/1** (brouillon, branc
 - b) Pro dès maintenant (≈ 23 €/mois, sauvegardes) *(recommandé dès qu'une vraie donnée entre)*
 - c) Autre
 
-**Q3. Données de santé ?**
+**Q3. Données de santé ?** ✅ **Tranchée le 2/10 : a (scénario A).**
 - a) Scénario A : aucune liste de patients, elle reste dans le logiciel de facturation *(recommandé)*
 - b) Scénario B : HDS dès la V1 (≈ 25–35 j + 8–20 k€ la 1re année)
 - c) A maintenant, B si 30 cabinets la demandent
