@@ -45,7 +45,7 @@ npm run dev                  # http://localhost:5173
 ## Mettre en ligne le mode cloud (≈ 30 min, voir aussi `STRIPE.md`)
 
 1. Créer un projet Supabase, région **UE** (Francfort ou Paris).
-2. `supabase link --project-ref <ref>` puis `supabase db push` (migrations de `supabase/migrations`). **Ne pas** exécuter `seed.sql` en production.
+2. `supabase link --project-ref <ref>` puis `supabase db push` (migrations de `supabase/migrations`). **Ne pas** exécuter `seed.sql` en production. Projet actuel : `releve` (`uhgbvxmpablxbqqdxbkr`, Paris) — migrations déjà appliquées le 2/10 via le connecteur, sauf `supabase/manuel/rgpd_et_purge.sql` à coller dans l'éditeur SQL.
 3. Vault : créer le secret `releve_cle_donnees` (`openssl rand -base64 48`).
 4. Vérifier dans Database → Cron que la tâche `releve-purge` existe (créée par la migration si `pg_cron` est disponible ; sinon activer l'extension et relancer `supabase db push`).
 5. Auth → Email : connexion par OTP, longueur 6 ; modèle « Magic Link » avec `{{ .Token }}` (voir `supabase/templates/code.html`) ; **SMTP personnalisé** (Resend…) indispensable au-delà de quelques emails par heure.
