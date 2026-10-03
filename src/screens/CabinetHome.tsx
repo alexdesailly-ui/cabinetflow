@@ -1,4 +1,4 @@
-import { Avatar, Banner, Btn, Ic, ListRow, PageHeader, Pill, Pouls, Repere, useCountUp, useRepere } from '../components/ui'
+import { Avatar, Btn, Ic, ListRow, PageHeader, Pill, Pouls, Repere, useCountUp, useRepere } from '../components/ui'
 import { alerteCDOI, conformite, euros, formatDate, joursEntre, montantLigne } from '../lib/domain'
 import { fiabilite, joursDeReposSecurises, pouls } from '../lib/gamification'
 import { go } from '../lib/router'
