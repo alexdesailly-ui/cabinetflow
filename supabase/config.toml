@@ -1,0 +1,54 @@
+# Configuration du projet pour la CLI Supabase (`supabase start`, `supabase db reset`).
+# Les valeurs de production se règlent dans le tableau de bord Supabase (voir README.md).
+project_id = "releve"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+major_version = 15
+
+[db.seed]
+enabled = true
+sql_paths = ["./seed.sql"]
+
+[auth]
+enabled = true
+site_url = "http://localhost:5173"
+additional_redirect_urls = ["http://localhost:5173/"]
+jwt_expiry = 3600
+enable_signup = true
+
+[auth.rate_limit]
+email_sent = 4
+token_verifications = 30
+
+[auth.email]
+enable_signup = true
+enable_confirmations = false
+otp_length = 6
+otp_expiry = 3600
+max_frequency = "60s"
+
+# Le gabarit doit contenir {{ .Token }} : l'application demande un code, pas un lien.
+[auth.email.template.magic_link]
+subject = "Votre code Relève"
+content_path = "./supabase/templates/code.html"
+
+[auth.email.template.confirmation]
+subject = "Votre code Relève"
+content_path = "./supabase/templates/code.html"
+
+[functions.stripe-webhook]
+verify_jwt = false
+
+[functions.stripe-checkout]
+verify_jwt = true
+
+[functions.stripe-portal]
+verify_jwt = true

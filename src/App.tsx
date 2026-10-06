@@ -1,11 +1,15 @@
-import { useEffect, useRef } from 'react'
-import { Avatar, Btn, Ic, Pill, Repere, ToastProvider, useToast } from './components/ui'
+import { useEffect, useRef, useState } from 'react'
+import { Avatar, Btn, Ic, Pill, ToastProvider, useToast } from './components/ui'
 import { attribuerBadges, seConnecter, seDeconnecter } from './lib/actions'
 import { formatDate } from './lib/domain'
 import { BADGES, badgesPour, nouveauxBadges } from './lib/gamification'
 import { go, useRoute, type Route } from './lib/router'
 import { DEMO_CABINET, DEMO_REMPLACANT, semerDemo } from './lib/seed'
-import { compteCourant, reinitialiser, useStore } from './lib/store'
+import { compteCourant, enModeCloud, getEtat, reinitialiser, useStore } from './lib/store'
+import { MODE_CLOUD } from './lib/cloud/config'
+import { deconnecter, exporterMesDonnees, initialiserCloud, ouvrirStripe, supprimerMonCompte } from './lib/cloud/auth'
+import { Connexion } from './screens/Connexion'
+import { Legal } from './screens/Legal'
 import type { Account } from './lib/types'
 import { CabinetHome } from './screens/CabinetHome'
 import { Invite, Landing } from './screens/Landing'
@@ -16,7 +20,6 @@ import { Parrainage } from './screens/Parrainage'
 import { Dossier, Missions, RemplacantHome } from './screens/RemplacantHome'
 import { RemplacantProfil, Vivier } from './screens/Vivier'
 import { Avis, lireAvis, partagerAvis } from './screens/Demo'
-import { useState } from 'react'
 import { reinitialiserReperes } from './components/ui'
 import { Logo } from './components/Logo'
 
@@ -30,8 +33,25 @@ function Shell() {
   const moi = compteCourant(e)
   const { toast } = useToast()
 
-  // Première visite : on installe le monde de démonstration.
-  useEffect(() => { if (e.accounts.length === 0) semerDemo() }, [e.accounts.length])
+  // Première visite : on installe le monde de démonstration (jamais en mode cloud).
+  useEffect(() => { if (!enModeCloud() && e.accounts.length === 0) semerDemo() }, [e.accounts.length])
+
+  // Mode cloud : reprise de session ; erreurs serveur affichées en toast.
+  useEffect(() => {
+    const h = (ev: Event) => toast((ev as CustomEvent<string>).detail)
+    window.addEventListener('releve:erreur', h)
+    void initialiserCloud()
+    return () => window.removeEventListener('releve:erreur', h)
+  }, [toast])
+
+  // Lien direct vers la démo, à coller dans WhatsApp : ?demo=cabinet ou ?demo=remplacant
+  useEffect(() => {
+    const demo = new URLSearchParams(location.search).get('demo')
+    if (!demo || enModeCloud()) return
+    if (getEtat().accounts.length === 0) semerDemo()
+    seConnecter(demo === 'remplacant' ? DEMO_REMPLACANT : DEMO_CABINET)
+    go({ name: 'home' })
+  }, [])
 
   // Détection des badges : après chaque changement d'état, on regarde ce que l'utilisateur vient de débloquer.
   const enCours = useRef(false)
@@ -48,7 +68,7 @@ function Shell() {
   // Les redirections se font après le montage : naviguer pendant le rendu
   // initial partirait avant que l'écouteur de navigation soit en place, et
   // l'écran resterait vide jusqu'au rafraîchissement.
-  const publique = route.name === 'landing' || route.name === 'invite' || route.name === 'onboarding'
+  const publique = route.name === 'landing' || route.name === 'invite' || route.name === 'onboarding' || route.name === 'connexion' || route.name === 'legal'
   const redirection: 'landing' | 'home' | null = !moi && !publique ? 'landing' : moi && route.name === 'landing' ? 'home' : null
   useEffect(() => { if (redirection) go({ name: redirection }) }, [redirection])
   if (redirection) return null
@@ -64,7 +84,12 @@ function Shell() {
               <span className="small muted" style={{ display: 'none' }}>{moi.prenom}</span>
               <Avatar prenom={moi.prenom} nom={moi.nom} />
             </button>
-          ) : route.name !== 'onboarding' && <Btn size="sm" variant="ghost" onClick={() => go({ name: 'onboarding', role: 'cabinet' })}>Créer un compte</Btn>}
+          ) : route.name !== 'onboarding' && route.name !== 'connexion' && (
+            <div className="row" style={{ gap: 6 }}>
+              {MODE_CLOUD && <Btn size="sm" variant="ghost" onClick={() => go({ name: 'connexion' })}>Se connecter</Btn>}
+              <Btn size="sm" variant="ghost" onClick={() => go({ name: 'onboarding', role: 'cabinet' })}>Créer un compte</Btn>
+            </div>
+          )}
         </div>
       </header>
 
@@ -82,6 +107,8 @@ function Ecran({ route, moi }: { route: Route; moi: Account | null }) {
     case 'landing': return <Landing />
     case 'invite': return <Invite code={route.code} nom={route.nom} />
     case 'onboarding': return <Onboarding role={route.role} parrain={route.parrain} />
+    case 'connexion': return MODE_CLOUD ? <Connexion email={route.email} /> : <Landing />
+    case 'legal': return <Legal page={route.page} />
   }
   if (!moi) return null
   switch (route.name) {
@@ -133,8 +160,9 @@ function Compte({ moi }: { moi: Account }) {
   const nbAvis = lireAvis().length
   return (
     <div className="stack-l">
-      <div className="page-head"><div className="row"><Avatar prenom={moi.prenom} nom={moi.nom} lg encre /><div><h1>{moi.prenom} {moi.nom}</h1><div className="sub">{moi.nomCabinet ?? 'Remplaçant·e'} · {moi.ville} · membre depuis le {formatDate(moi.creeLe)}</div></div></div><Btn variant="ghost" icon={Ic.logout} onClick={() => { seDeconnecter(); go({ name: 'landing' }) }}>Se déconnecter</Btn></div>
-      {moi.role === 'cabinet' && (
+      <div className="page-head"><div className="row"><Avatar prenom={moi.prenom} nom={moi.nom} lg encre /><div><h1>{moi.prenom} {moi.nom}</h1><div className="sub">{moi.nomCabinet ?? 'Remplaçant·e'} · {moi.ville} · membre depuis le {formatDate(moi.creeLe)}</div></div></div><Btn variant="ghost" icon={Ic.logout} onClick={() => { if (enModeCloud()) void deconnecter(); else seDeconnecter(); go({ name: 'landing' }) }}>Se déconnecter</Btn></div>
+      {moi.role === 'cabinet' && e.cloud && <Abonnement moi={moi} />}
+      {moi.role === 'cabinet' && !e.cloud && (
         <div className="card stack">
           <div className="between"><h3>Abonnement</h3><Pill tone="accent">{moi.plan === 'essai' ? 'Essai' : 'Cabinet'}</Pill></div>
           <p className="small">29 € / mois après le premier mois offert. <strong>{moi.moisOfferts} mois offert{moi.moisOfferts > 1 ? 's' : ''}</strong> grâce au parrainage{moi.moisOfferts > 0 ? ' — soit ' + (moi.moisOfferts * 29) + ' € économisés' : ''}.</p>
@@ -154,7 +182,8 @@ function Compte({ moi }: { moi: Account }) {
         <div className="row"><Btn variant="encre" icon={Ic.msg} onClick={() => setAvisOuvert(true)}>Donner mon avis</Btn>{nbAvis > 0 && <Btn variant="ghost" size="sm" icon={Ic.share} onClick={() => partagerAvis(toast)}>Partager les {nbAvis} avis</Btn>}</div>
       </div>
       <Avis open={avisOuvert} onClose={() => setAvisOuvert(false)} />
-      <div className="card stack">
+      {e.cloud && <MesDonnees />}
+      {!e.cloud && <div className="card stack">
         <h3>Démonstration</h3>
         {autre && <Btn variant="ghost" block onClick={() => { seConnecter(autre); go({ name: 'home' }); toast(`Vous êtes maintenant ${autre === DEMO_CABINET ? 'Marie Dubois (cabinet)' : 'Julien Morel (remplaçant)'}`) }}>Basculer sur {autre === DEMO_CABINET ? 'le cabinet de Marie' : 'le compte de Julien (remplaçant)'}</Btn>}
         <div className="small muted">Comptes disponibles sur cet appareil :</div>
@@ -163,8 +192,63 @@ function Compte({ moi }: { moi: Account }) {
           <Btn variant="ghost" size="sm" onClick={() => { reinitialiserReperes(); toast('Les repères s’afficheront à nouveau') }}>Revoir les repères</Btn>
           <Btn variant="danger" size="sm" onClick={() => { if (confirm('Effacer toutes les données locales et régénérer la démonstration ?')) { reinitialiser(); semerDemo(); reinitialiserReperes(); go({ name: 'landing' }) } }}>Réinitialiser la démonstration</Btn>
         </div>
+      </div>}
+      <p className="tiny muted">{e.cloud
+        ? <>Relève — compte connecté{e.cloud.email ? ` (${e.cloud.email})` : ''}. Aucune donnée de patient ne doit être saisie. Les montants sont des estimations, pas un calcul fiscal.</>
+        : <>Relève — version pilote. Données stockées uniquement dans ce navigateur. Aucune donnée réelle de patient ne doit être saisie. Les montants sont des estimations, pas un calcul fiscal. {BADGES.length} badges, {e.accounts.length} comptes en local.</>}
+        {' '}<a href="#/legal/mentions">Mentions légales</a> · <a href="#/legal/confidentialite">Confidentialité</a> · <a href="#/legal/cgu">CGU</a></p>
+    </div>
+  )
+}
+
+/** Abonnement réel (mode cloud) : Stripe Checkout pour souscrire, portail client pour gérer. */
+function Abonnement({ moi }: { moi: Account }) {
+  const e = useStore()
+  const { toast } = useToast()
+  const abo = e.cloud?.abonnement
+  const actif = abo && ['active', 'trialing', 'past_due'].includes(abo.statut)
+  const finEssai = new Date(new Date(moi.creeLe).getTime() + (14 + 30 * moi.moisOfferts) * 86_400_000)
+  const ouvrir = (a: 'checkout' | 'portal', i?: 'month' | 'year') => ouvrirStripe(a, i).catch(err => toast(err instanceof Error ? err.message : String(err)))
+  return (
+    <div className="card stack">
+      <div className="between"><h3>Abonnement</h3><Pill tone={actif ? 'ok' : 'accent'}>{actif ? (abo!.statut === 'past_due' ? 'Paiement en échec' : 'Actif') : finEssai > new Date() ? 'Essai' : 'Inactif'}</Pill></div>
+      {actif ? (
+        <>
+          <p className="small">Formule {abo!.intervalle === 'year' ? 'annuelle' : 'mensuelle'}{abo!.finPeriode ? ` · ${abo!.annulationFinPeriode ? 'se termine' : 'renouvellement'} le ${formatDate(abo!.finPeriode)}` : ''}.</p>
+          {abo!.statut === 'past_due' && <p className="small">Le dernier paiement a échoué. Mettez à jour votre carte pour garder la publication de remplacements.</p>}
+          <Btn variant="soft" size="sm" onClick={() => ouvrir('portal')}>Gérer mon abonnement</Btn>
+        </>
+      ) : (
+        <>
+          <p className="small">{finEssai > new Date() ? `Essai gratuit jusqu’au ${formatDate(finEssai.toISOString())}` : 'Votre essai est terminé : abonnez-vous pour publier de nouveaux remplacements'}{moi.moisOfferts > 0 ? ` (dont ${moi.moisOfferts} mois offert${moi.moisOfferts > 1 ? 's' : ''} par parrainage)` : ''}.</p>
+          <div className="row"><Btn variant="encre" size="sm" onClick={() => ouvrir('checkout', 'month')}>S’abonner — mensuel</Btn><Btn variant="ghost" size="sm" onClick={() => ouvrir('checkout', 'year')}>Annuel</Btn></div>
+        </>
+      )}
+      <Btn variant="ghost" size="sm" onClick={() => go({ name: 'parrainage' })}>Gagner des mois offerts</Btn>
+    </div>
+  )
+}
+
+/** Droits RGPD en libre-service : export et suppression. */
+function MesDonnees() {
+  const { toast } = useToast()
+  const [confirmation, setConfirmation] = useState('')
+  const [ouvert, setOuvert] = useState(false)
+  return (
+    <div className="card stack">
+      <h3>Mes données</h3>
+      <p className="small muted">Vous pouvez télécharger toutes les données liées à votre compte, ou le supprimer. Un contrat signé est conservé sous forme anonymisée pour votre confrère.</p>
+      <div className="row">
+        <Btn variant="ghost" size="sm" onClick={() => exporterMesDonnees().catch(err => toast(err instanceof Error ? err.message : String(err)))}>Télécharger mes données</Btn>
+        <Btn variant="danger" size="sm" onClick={() => setOuvert(true)}>Supprimer mon compte</Btn>
       </div>
-      <p className="tiny muted">Relève — version pilote. Données stockées uniquement dans ce navigateur. Aucune donnée réelle de patient ne doit être saisie. Les montants sont des estimations, pas un calcul fiscal. {BADGES.length} badges, {e.accounts.length} comptes en local.</p>
+      {ouvert && (
+        <div className="card warn stack" style={{ gap: 8 }}>
+          <p className="small">Action définitive. Tapez <strong>SUPPRIMER</strong> pour confirmer.</p>
+          <input id="rgpd-conf" className="input" value={confirmation} onChange={ev => setConfirmation(ev.target.value)} aria-label="Confirmation" />
+          <Btn variant="danger" size="sm" disabled={confirmation !== 'SUPPRIMER'} onClick={() => supprimerMonCompte().then(() => go({ name: 'landing' })).catch(err => toast(err instanceof Error ? err.message : String(err)))}>Supprimer définitivement</Btn>
+        </div>
+      )}
     </div>
   )
 }

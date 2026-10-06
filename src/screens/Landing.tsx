@@ -4,6 +4,8 @@ import { seConnecter } from '../lib/actions'
 import { DEMO_CABINET, DEMO_REMPLACANT } from '../lib/seed'
 import { go } from '../lib/router'
 import { useStore } from '../lib/store'
+import { MODE_CLOUD } from '../lib/cloud/config'
+import { useParrain } from '../lib/cloud/parrain'
 
 export function Landing() {
   const e = useStore()
@@ -54,9 +56,12 @@ export function Landing() {
         <div className="tile"><span className="k">Remplacements simultanés</span><span className="v num">2 max</span><span className="s">règle de l’Ordre</span></div>
       </section>
 
+      {MODE_CLOUD && <p className="small muted" style={{ textAlign: 'center' }}>Déjà inscrit·e ? <button className="linkbtn" onClick={() => go({ name: 'connexion' })}>Se connecter</button></p>}
+
       <footer className="footer">
         <Logo size={20} />
         <span>Version pilote · aucune donnée réelle de patient · estimations, pas un conseil juridique</span>
+        <span className="footer-liens"><a href="#/legal/mentions">Mentions légales</a><a href="#/legal/confidentialite">Confidentialité</a><a href="#/legal/cgu">CGU</a></span>
       </footer>
     </div>
   )
@@ -73,8 +78,7 @@ function Feature({ icon: Icon, titre, texte }: { icon: (p: { className?: string 
 
 /** Page d'atterrissage d'un lien de parrainage : nominative. */
 export function Invite({ code, nom }: { code: string; nom?: string }) {
-  const e = useStore()
-  const parrain = e.accounts.find(a => a.codeParrain === code)
+  const parrain = useParrain(code)
   const prenom = parrain ? `${parrain.prenom} ${parrain.nom}` : (nom ?? 'Un confrère')
   return (
     <div className="stack-l" style={{ maxWidth: 640 }}>

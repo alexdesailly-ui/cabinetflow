@@ -1,0 +1,82 @@
+# Production : https://cabinetflow.fr (Hostinger), même mécanique que scm-garnier.
+# MANUEL uniquement : Actions → « Déployer la prod (Hostinger) » → Run workflow → taper DEPLOYER.
+# Secret requis dans CE dépôt : FTP_PASS (Settings → Secrets and variables → Actions).
+# Variables facultatives : VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY (mode comptes réels),
+# HOSTINGER_FTP_HOST / HOSTINGER_FTP_USER (sinon valeurs du compte partagé avec scm-garnier).
+name: Déployer la prod (Hostinger)
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: 'Tapez DEPLOYER pour confirmer la mise en production sur cabinetflow.fr'
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: prod-hostinger
+  cancel-in-progress: false
+
+env:
+  FTP_HOST: ${{ vars.HOSTINGER_FTP_HOST || '145.79.20.5' }}
+  FTP_USER: ${{ vars.HOSTINGER_FTP_USER || 'u398408214' }}
+  REMOTE_DIR: /domains/cabinetflow.fr/public_html
+
+jobs:
+  deploy:
+    name: Build, tests, envoi FTP
+    runs-on: ubuntu-latest
+    if: inputs.confirmation == 'DEPLOYER' && github.ref == 'refs/heads/main'
+    environment:
+      name: production
+      url: https://cabinetflow.fr/
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run lint && npm run typecheck && npm test
+      - run: npm run build
+        env:
+          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY }}
+      - name: Préparer le dossier publié
+        run: |
+          rm -f dist/artifact.html
+          test -f dist/index.html && test -f dist/.htaccess && test -f dist/og.png
+          ls -la dist
+      - name: Vérifier le secret
+        env:
+          FTP_PASS: ${{ secrets.FTP_PASS }}
+        run: test -n "$FTP_PASS" || { echo "::error::Secret FTP_PASS absent de ce dépôt (Settings → Secrets and variables → Actions)"; exit 1; }
+      - name: Installer lftp
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq lftp
+      - name: Envoi vers Hostinger
+        env:
+          FTP_PASS: ${{ secrets.FTP_PASS }}
+        run: |
+          timeout 300 lftp -u "$FTP_USER,$FTP_PASS" "$FTP_HOST" <<LFTP
+          set ssl:verify-certificate no
+          set net:timeout 20
+          set net:max-retries 2
+          set net:reconnect-interval-base 5
+          set cmd:fail-exit yes
+          cd $REMOTE_DIR
+          echo ">>> AVANT :"
+          cls -l
+          rm -f default.php maintenance.html coming-soon.html
+          mirror --reverse --verbose dist/ $REMOTE_DIR/
+          echo ">>> APRÈS :"
+          cls -l
+          bye
+          LFTP
+      - name: Vérification en ligne
+        run: |
+          sleep 5
+          code=$(curl -s -o page.html -w '%{http_code}' https://cabinetflow.fr/)
+          echo "HTTP $code"
+          test "$code" = 200 && grep -q 'Relève' page.html

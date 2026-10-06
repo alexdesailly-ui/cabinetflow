@@ -14,9 +14,15 @@ export type Route =
   | { name: 'dossier' }
   | { name: 'parrainage' }
   | { name: 'compte' }
+  | { name: 'connexion'; email?: string }
+  | { name: 'legal'; page: PageLegale }
+
+export type PageLegale = 'mentions' | 'confidentialite' | 'cgu'
 
 function parse(): Route {
   const params = new URLSearchParams(location.search)
+  const demo = params.get('demo')
+  if (demo && !location.hash) return { name: 'landing' }
   const p = params.get('p')
   if (p && !location.hash) return { name: 'invite', code: p, nom: params.get('n') ?? undefined }
   const h = location.hash.replace(/^#\/?/, '')
@@ -33,6 +39,8 @@ function parse(): Route {
     case 'dossier': return { name: 'dossier' }
     case 'parrainage': return { name: 'parrainage' }
     case 'compte': return { name: 'compte' }
+    case 'connexion': return { name: 'connexion', email: b ? decodeURIComponent(b) : undefined }
+    case 'legal': return { name: 'legal', page: b === 'confidentialite' || b === 'cgu' ? b : 'mentions' }
     default: return { name: 'landing' }
   }
 }
@@ -45,6 +53,8 @@ export function href(r: Route): string {
     case 'mission-new': return '#/mission/nouveau'
     case 'mission': return `#/mission/${r.id}${r.onglet ? '/' + r.onglet : ''}`
     case 'remplacant': return `#/remplacant/${r.id}`
+    case 'connexion': return `#/connexion${r.email ? '/' + encodeURIComponent(r.email) : ''}`
+    case 'legal': return `#/legal/${r.page}`
     default: return `#/${r.name}`
   }
 }
