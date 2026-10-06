@@ -59,7 +59,7 @@ npm run dev                  # http://localhost:5173
 |---|---|---|
 | CI (`ci.yml`) | Chaque PR et push sur `main` | Lint, types, tests, build, budget de taille, tests SQL, typage Deno, scan de secrets |
 | Preview (`preview.yml`) | Chaque PR | Cloudflare Pages, actif dès que les secrets `CLOUDFLARE_API_TOKEN` et `CLOUDFLARE_ACCOUNT_ID` existent |
-| Prod (`deploy-hostinger.yml`) | **Manuel uniquement** | Actions → « Déployer la prod (Hostinger) », confirmation `DEPLOYER`, branche `main` → https://cabinetflow.fr (FTP, secret `FTP_PASS` ; en-têtes de sécurité dans `public/.htaccess`) |
+| Prod (`deploy-hostinger.yml`) | **Manuel uniquement** | Actions → « Déployer la prod (Hostinger) », confirmation `DEPLOYER`, branche `main` → https://cabinetflow.fr (FTP, secret `FTP_PASS` du compte FTP propre au site ; en-têtes de sécurité dans `public/.htaccess`) |
 | Secours (`pages.yml`) | Manuel uniquement | GitHub Pages, à n'utiliser que si Hostinger est indisponible (conditions GitHub : pas d'usage SaaS commercial) |
 
 ## Architecture

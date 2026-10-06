@@ -21,8 +21,10 @@ concurrency:
 
 env:
   FTP_HOST: ${{ vars.HOSTINGER_FTP_HOST || '145.79.20.5' }}
-  FTP_USER: ${{ vars.HOSTINGER_FTP_USER || 'u398408214' }}
-  REMOTE_DIR: /domains/cabinetflow.fr/public_html
+  # Compte FTP propre au site cabinetflow.fr (hPanel → Fichiers → Comptes FTP).
+  FTP_USER: ${{ vars.HOSTINGER_FTP_USER || 'u398408214.cabinetflow.fr' }}
+  # Dossier préféré ; sinon détecté automatiquement (voir étape « Trouver le dossier »).
+  REMOTE_DIR_PREFERE: ${{ vars.HOSTINGER_REMOTE_DIR || '' }}
 
 jobs:
   deploy:
@@ -55,9 +57,25 @@ jobs:
         run: test -n "$FTP_PASS" || { echo "::error::Secret FTP_PASS absent de ce dépôt (Settings → Secrets and variables → Actions)"; exit 1; }
       - name: Installer lftp
         run: sudo apt-get update -qq && sudo apt-get install -y -qq lftp
+      - name: Trouver le dossier du site
+        id: dossier
+        env:
+          FTP_PASS: ${{ secrets.FTP_PASS }}
+        run: |
+          set +e
+          # Un compte FTP propre à un site arrive souvent déjà dans le bon dossier ; un compte général, non.
+          for d in "$REMOTE_DIR_PREFERE" public_html domains/cabinetflow.fr/public_html /domains/cabinetflow.fr/public_html /public_html .; do
+            [ -z "$d" ] && continue
+            sortie=$(lftp -u "$FTP_USER,$FTP_PASS" "$FTP_HOST" -e "set ssl:verify-certificate no; set net:max-retries 1; set net:timeout 15; cd $d && echo DOSSIER_OK; bye" 2>&1)
+            if echo "$sortie" | grep -q DOSSIER_OK; then echo "Dossier retenu : $d"; echo "dir=$d" >> "$GITHUB_OUTPUT"; exit 0; fi
+            if echo "$sortie" | grep -q "530"; then echo "::error::Connexion FTP refusée (530) pour $FTP_USER : vérifier l'identifiant et le secret FTP_PASS"; exit 1; fi
+          done
+          echo "::error::Aucun dossier de site trouvé pour $FTP_USER"
+          exit 1
       - name: Envoi vers Hostinger
         env:
           FTP_PASS: ${{ secrets.FTP_PASS }}
+          DIR: ${{ steps.dossier.outputs.dir }}
         run: |
           timeout 300 lftp -u "$FTP_USER,$FTP_PASS" "$FTP_HOST" <<LFTP
           set ssl:verify-certificate no
@@ -65,11 +83,11 @@ jobs:
           set net:max-retries 2
           set net:reconnect-interval-base 5
           set cmd:fail-exit yes
-          cd $REMOTE_DIR
+          cd $DIR
           echo ">>> AVANT :"
           cls -l
           rm -f default.php maintenance.html coming-soon.html
-          mirror --reverse --verbose dist/ $REMOTE_DIR/
+          mirror --reverse --verbose dist/ ./
           echo ">>> APRÈS :"
           cls -l
           bye
