@@ -20,6 +20,8 @@ import { Parrainage } from './screens/Parrainage'
 import { Dossier, Missions, RemplacantHome } from './screens/RemplacantHome'
 import { RemplacantProfil, Vivier } from './screens/Vivier'
 import { Avis, lireAvis, partagerAvis } from './screens/Demo'
+import { Annonce } from './screens/Annonce'
+import { DemoHub } from './screens/DemoHub'
 import { reinitialiserReperes } from './components/ui'
 import { Logo } from './components/Logo'
 
@@ -44,13 +46,13 @@ function Shell() {
     return () => window.removeEventListener('releve:erreur', h)
   }, [toast])
 
-  // Lien direct vers la démo, à coller dans WhatsApp : ?demo=cabinet ou ?demo=remplacant
+  // Lien direct vers la démo, à coller dans WhatsApp : ?demo=cabinet (démo en blocs) ou ?demo=remplacant.
+  // Ignoré dès qu'une adresse interne (#/…) est présente : une annonce partagée ne doit jamais être détournée.
   useEffect(() => {
     const demo = new URLSearchParams(location.search).get('demo')
-    if (!demo || enModeCloud()) return
+    if (!demo || location.hash || enModeCloud()) return
     if (getEtat().accounts.length === 0) semerDemo()
-    seConnecter(demo === 'remplacant' ? DEMO_REMPLACANT : DEMO_CABINET)
-    go({ name: 'home' })
+    if (demo === 'remplacant') { seConnecter(DEMO_REMPLACANT); go({ name: 'home' }) } else go({ name: 'demo' })
   }, [])
 
   // Détection des badges : après chaque changement d'état, on regarde ce que l'utilisateur vient de débloquer.
@@ -68,18 +70,20 @@ function Shell() {
   // Les redirections se font après le montage : naviguer pendant le rendu
   // initial partirait avant que l'écouteur de navigation soit en place, et
   // l'écran resterait vide jusqu'au rafraîchissement.
-  const publique = route.name === 'landing' || route.name === 'invite' || route.name === 'onboarding' || route.name === 'connexion' || route.name === 'legal'
+  const publique = route.name === 'landing' || route.name === 'invite' || route.name === 'onboarding' || route.name === 'connexion' || route.name === 'legal' || route.name === 'demo' || route.name === 'annonce'
+  // La démo en blocs et les annonces partagées s'affichent seules : ni barre de navigation, ni menu de l'application.
+  const plein = route.name === 'demo' || route.name === 'annonce'
   const redirection: 'landing' | 'home' | null = !moi && !publique ? 'landing' : moi && route.name === 'landing' ? 'home' : null
   useEffect(() => { if (redirection) go({ name: redirection }) }, [redirection])
   if (redirection) return null
 
   return (
-    <div className={`shell ${moi ? 'app' : ''}`}>
+    <div className={`shell ${moi && !plein ? 'app' : ''}`}>
       <header className="topbar">
         <div className="topbar-in">
           <a className="brand" href="#/" onClick={ev => { ev.preventDefault(); go({ name: moi ? 'home' : 'landing' }) }} aria-label="Relève, accueil"><Logo size={26} /></a>
           <span className="spacer" />
-          {moi ? (
+          {plein ? null : moi ? (
             <button className="row" style={{ background: 'none', border: 0, cursor: 'pointer', gap: 8 }} onClick={() => go({ name: 'compte' })} aria-label="Mon compte">
               <span className="small muted" style={{ display: 'none' }}>{moi.prenom}</span>
               <Avatar prenom={moi.prenom} nom={moi.nom} />
@@ -97,7 +101,7 @@ function Shell() {
         <Ecran route={route} moi={moi} />
       </main>
 
-      {moi && <Nav route={route} moi={moi} />}
+      {moi && !plein && <Nav route={route} moi={moi} />}
     </div>
   )
 }
@@ -109,6 +113,8 @@ function Ecran({ route, moi }: { route: Route; moi: Account | null }) {
     case 'onboarding': return <Onboarding role={route.role} parrain={route.parrain} />
     case 'connexion': return MODE_CLOUD ? <Connexion email={route.email} /> : <Landing />
     case 'legal': return <Legal page={route.page} />
+    case 'demo': return <DemoHub />
+    case 'annonce': return <Annonce code={route.code} />
   }
   if (!moi) return null
   switch (route.name) {

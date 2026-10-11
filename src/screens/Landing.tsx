@@ -11,6 +11,7 @@ export function Landing() {
   const e = useStore()
   const demoOk = e.accounts.some(a => a.id === DEMO_CABINET)
   const essayer = (idc: string) => { seConnecter(idc); go({ name: 'home' }) }
+  const essayerLaDemo = () => go({ name: 'demo' })
 
   return (
     <div className="stack-l" style={{ maxWidth: 760 }}>
@@ -35,7 +36,7 @@ export function Landing() {
 
       {demoOk && (
         <section className="card pad-0 list">
-          <div className="item wrap"><Ic.sparkle style={{ color: 'var(--accent-text)' }} /><div className="grow"><div className="t">Essayer sans créer de compte</div><div className="m">Un cabinet fictif à Angers, un remplacement d’octobre avec trois candidats.</div></div><div className="row"><Btn size="sm" onClick={() => essayer(DEMO_CABINET)}>Côté cabinet</Btn><Btn size="sm" variant="ghost" onClick={() => essayer(DEMO_REMPLACANT)}>Côté remplaçant</Btn></div></div>
+          <div className="item wrap"><Ic.sparkle style={{ color: 'var(--accent-text)' }} /><div className="grow"><div className="t">Essayer sans créer de compte</div><div className="m">La démo en 5 blocs : annoncer sur WhatsApp, signer, suivre les honoraires. 30 secondes par bloc.</div></div><div className="row"><Btn size="sm" onClick={essayerLaDemo}>Côté cabinet</Btn><Btn size="sm" variant="ghost" onClick={() => essayer(DEMO_REMPLACANT)}>Côté remplaçant</Btn></div></div>
         </section>
       )}
 
@@ -51,7 +52,7 @@ export function Landing() {
       </section>
 
       <section className="proof">
-        <div className="tile"><span className="k">Infirmiers libéraux en France</span><span className="v num">145 000</span></div>
+        <div className="tile"><span className="k">Infirmières libérales en France</span><span className="v num">≈ 98 600</span><span className="s">en 2021 · source : DREES</span></div>
         <div className="tile"><span className="k">Congés payés</span><span className="v num">0</span><span className="s">chaque jour non remplacé est perdu</span></div>
         <div className="tile"><span className="k">Remplacements simultanés</span><span className="v num">2 max</span><span className="s">règle de l’Ordre</span></div>
       </section>

@@ -48,7 +48,11 @@ src/
     cloud/           Supabase : configuration, authentification, correspondance, synchronisation
     seed.ts          monde de démonstration
     router.ts        routage par hash
-  screens/           un fichier par écran
+    annonce.ts       annonce d'absence partageable : données dans le lien, messages et adresses WhatsApp
+    demoState.ts     état de la démonstration en blocs (offre essayée, notes, profil), dans le navigateur
+    demoBlocs.ts     les cinq blocs : nom, niveau d'offre, message de retour
+    demoFixtures.ts  personnes et dossier fictifs des blocs, contrôlés et rédigés par le vrai domaine
+  screens/           un fichier par écran ; demo/ : une feuille de test par bloc
 supabase/
   migrations/        schéma, sécurité, chiffrement et RGPD, abonnement (rejouables)
   functions/         Edge Functions de paiement (Deno)
@@ -104,6 +108,16 @@ Autour de `comptes` (le « tenant ») gravitent `compte_membres` (qui peut agir 
 | Fiche visible du remplaçant de J-7 à J+3 seulement | `private.peut_lire_fiche` |
 
 Toutes les clés étrangères utilisées dans les filtres de sécurité sont indexées, plus `missions(statut, du)` pour la place de marché et `comptes(role, departement)` pour le vivier.
+
+## Démonstration en blocs
+
+La page `DemoHub` présente cinq blocs ; chacun ouvre une feuille (`screens/demo/`) qui se joue seule. Trois choix structurent le code :
+
+- **Le vrai domaine, pas une maquette.** Les contrôles d'éligibilité (`controlerAffectation`), le contrat (`texteContrat`), le calcul de rétrocession et l'alerte à l'Ordre sont ceux de l'application : ce que la démonstration montre est ce que le produit fait.
+- **Une annonce sans serveur.** Dates, nom du cabinet, ville, motif et numéro facultatif sont encodés dans l'adresse (`#/annonce/<code>`) ; la page du remplaçant décode le lien et ouvre WhatsApp (`wa.me`) sur une réponse préécrite. Rien n'est stocké. Le lien peut être fabriqué par n'importe qui : le décodage valide chaque champ (longueurs, dates, numéro limité aux chiffres) et le texte n'est jamais interprété comme du HTML.
+- **Un état local défensif.** Offre essayée, notes, profil et mot libre vivent dans `localStorage` (`releve:demo-blocs`), relus avec méfiance : tout ce qui n'a pas la bonne forme est écarté, et la démonstration fonctionne même si le stockage est bloqué. Rien ne quitte l'appareil avant un tap sur « Envoyer ».
+
+Limites assumées : les réponses des remplaçants sont simulées (Relève ne voit pas les messages WhatsApp), et le bouton Retour du navigateur quitte la démonstration au lieu de fermer la feuille ouverte.
 
 ## Synchronisation par différence d'état
 

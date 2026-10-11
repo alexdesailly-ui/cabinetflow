@@ -36,13 +36,29 @@ La démonstration montre l'ensemble du parcours pour donner la vision. La mise e
 
 | Palier | Apport | Dans la démonstration |
 |---|---|---|
-| **1. Annoncer une absence** | Le titulaire déclare ses dates, l'annonce est diffusée à ses remplaçants (par exemple via une messagerie), les disponibles se manifestent et sont mis en relation | Déclaration et candidatures disponibles ; la diffusion par messagerie reste à construire |
-| **1+. Suivre congés et remplaçants** | Vue d'ensemble des absences, du carnet de remplaçants habituels, des relances | Partiel (liste des remplacements, vivier) |
-| **2. Contrat et pièces** | Demande et contrôle des pièces (autorisation, assurance…), contrat conforme, rappel à l'Ordre | Disponible, pièces déclaratives |
-| **2+. Signature électronique** | Signature à valeur probante renforcée | Signature simple disponible |
-| **3. Flux financiers** | Encaissement et reversement des honoraires par la plateforme | Suivi du reversement disponible ; mouvement de fonds à étudier avec un partenaire de paiement agréé |
+| **1. Annoncer une absence** | Le titulaire déclare ses dates, l'annonce est diffusée à ses remplaçants (par exemple via une messagerie), les disponibles se manifestent et sont mis en relation | Bloc 1 : l'annonce et la réponse « partant » passent réellement par WhatsApp (lien de partage) ; le décompte des réponses reste à construire |
+| **1+. Suivre congés et remplaçants** | Vue d'ensemble des absences, du carnet de remplaçants habituels, des relances | Partiel, dans l'application complète (liste des remplacements, vivier) |
+| **2. Contrat et pièces** | Demande et contrôle des pièces (autorisation, assurance…), contrat conforme, rappel à l'Ordre | Blocs 3 et 5 : contrat généré, contrôles bloquants ; pièces déclaratives |
+| **2+. Signature électronique** | Signature à valeur probante renforcée | Bloc 3 : signature simple ; la signature qualifiée reste à faire |
+| **3. Flux financiers** | Encaissement et reversement des honoraires par la plateforme | Bloc 4 : calcul et suivi du reversement ; l'encaissement automatique est annoncé « bientôt » pour mesurer l'intérêt, le mouvement de fonds restant à étudier avec un partenaire de paiement agréé |
 
 L'ordre est une **hypothèse** : il sera arbitré avec les retours d'infirmiers libéraux (voir [Validation auprès d'utilisateurs](tests-utilisateurs.md)). La question ouverte du palier 1 : si une messagerie gratuite suffit déjà à annoncer une absence, la valeur payante se situe plutôt aux paliers suivants.
+
+## La démonstration en cinq blocs
+
+Pour obtenir un avis sans effort, la démonstration est découpée en cinq blocs indépendants. Chacun porte un numéro, se teste seul en une trentaine de secondes et se note d'un emoji (😍 utile, 😐 bof, 🙅 pas pour moi) : un testeur peut dire « le bloc 3 ne me sert pas » sans rien décrire. Cinq blocs plutôt qu'une douzaine de fonctions : assez pour séparer des valeurs différentes, assez peu pour que la personne les parcoure tous.
+
+| Bloc | Thème | Offre | Ce qui est réel | Ce qui est simulé |
+|---|---|---|---|---|
+| 1 | Partage WhatsApp | Gratuit | Annonce rédigée et envoyée sur WhatsApp ; page « Je suis partant(e) » ouverte par le remplaçant, qui répond par un message déjà écrit | Les réponses affichées dans l'application |
+| 2 | Souscription et onboarding | Gratuit | Parcours de création de compte, comparaison des offres, calendrier des paiements | Le code reçu par e-mail et le paiement |
+| 3 | Signature électronique | Premium | Contrat produit par le vrai modèle, signature par glissement | La signature du remplaçant |
+| 4 | Facturation et encaissement | Premium | Calcul de la rétrocession, relevé, envoi par WhatsApp | L'encaissement automatique (on mesure l'intérêt) |
+| 5 | Conformité et données de santé | Inclus | Contrôles bloquants (mêmes règles que l'application), fenêtre d'accès à la fiche | Les dossiers de trois remplaçants fictifs |
+
+**Où et quand on paie.** Le testeur arrive en version gratuite : l'annonce WhatsApp fonctionne, sans limite. Les blocs 3 et 4 portent un verrou ; le toucher ouvre une page Premium (essai de 14 jours sans carte, puis 29 € par mois ou 290 € par an) et le bloc 1 se termine sur un appel à « sécuriser avec contrat et signature ». Ces mécanismes reprennent des usages courants des applications professionnelles : offre gratuite utile, fonctions avancées visibles mais verrouillées, essai sans carte, prix annuel, comparaison avec le coût d'un jour sans remplaçant.
+
+**Un conditionnement testé, pas imposé.** La répartition gratuit / Premium est une hypothèse de la démonstration. L'application complète et la base appliquent aujourd'hui une autre règle : la publication d'une annonce est réservée aux cabinets en essai ou abonnés (`cabinet_actif`, voir [Architecture](architecture.md)). Si les retours valident une version gratuite centrée sur l'annonce, cette règle se déplace de la publication vers le contrat et la signature.
 
 ## Concurrence
 
