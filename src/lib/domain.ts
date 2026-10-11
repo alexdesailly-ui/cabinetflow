@@ -24,16 +24,34 @@ export function dansNJours(n: number): string {
   return new Date(Date.now() + n * jour).toISOString().slice(0, 10)
 }
 
+/**
+ * Une date « aaaa-mm-jj » est un jour du calendrier, pas un instant : lue à
+ * minuit UTC, elle s'affiche la veille à l'ouest de Greenwich (Antilles, Guyane,
+ * Polynésie). On la lit donc à midi, heure locale.
+ */
+const jourCalendaire = (iso: string): Date => (/^\d{4}-\d{2}-\d{2}$/.test(iso) ? new Date(`${iso}T12:00:00`) : new Date(iso))
+
 export function formatDate(iso?: string): string {
   if (!iso) return '—'
-  return new Date(iso).toLocaleDateString('fr-FR', {
+  return jourCalendaire(iso).toLocaleDateString('fr-FR', {
     day: '2-digit', month: 'short', year: 'numeric',
   })
 }
 
+/**
+ * « 25 nov. → 8 déc. 2026 » (ou « du 25 nov. au 8 déc. 2026 » dans une phrase) :
+ * l'année n'est écrite qu'une fois quand elle est commune.
+ */
+export function formatPeriode(du: string, au: string, forme: 'fleche' | 'phrase' = 'fleche'): string {
+  const annee = (iso: string) => jourCalendaire(iso).getFullYear()
+  const jourMois = (iso: string) => jourCalendaire(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
+  const [debut, fin] = annee(du) === annee(au) ? [jourMois(du), `${jourMois(au)} ${annee(au)}`] : [formatDate(du), formatDate(au)]
+  return forme === 'phrase' ? `du ${debut} au ${fin}` : `${debut} → ${fin}`
+}
+
 export function formatDateCourte(iso?: string): string {
   if (!iso) return '—'
-  return new Date(iso).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })
+  return jourCalendaire(iso).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })
 }
 
 export function euros(n: number): string {

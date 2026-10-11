@@ -8,14 +8,15 @@ Relève outille tout ce parcours : annoncer une absence, recevoir des candidatur
 
 <table>
 <tr>
-<td align="center"><img src="docs/img/accueil-cabinet.png" width="230" alt="Accueil d'un cabinet : actions à faire et remplacements à venir"><br><sub>Le cabinet voit ce qui attend un geste</sub></td>
-<td align="center"><img src="docs/img/candidatures-controles.png" width="230" alt="Candidatures avec contrôles bloquants : autorisation expirée, assurance non valide"><br><sub>Les candidatures sont contrôlées avant la signature</sub></td>
-<td align="center"><img src="docs/img/contrat-signature.png" width="230" alt="Contrat de remplacement prêt à signer"><br><sub>Le contrat se signe depuis le téléphone</sub></td>
+<td align="center" valign="top"><img src="docs/img/demo-hub.png" width="190" alt="Accueil de la démonstration : cinq blocs numérotés, à noter d'un emoji"><br><sub><b>La démo en 5 blocs</b>,<br>chacun noté d'un emoji</sub></td>
+<td align="center" valign="top"><img src="docs/img/demo-whatsapp.png" width="190" alt="Bloc 1 : l'annonce d'absence prête à partir sur WhatsApp"><br><sub><b>Bloc 1 · gratuit</b> : l'annonce<br>part vraiment sur WhatsApp</sub></td>
+<td align="center" valign="top"><img src="docs/img/demo-premium.png" width="190" alt="Bloc 3 : essai Premium de 14 jours sans carte bancaire"><br><sub><b>Bloc 3 · Premium</b> :<br>14 jours gratuits, sans carte</sub></td>
+<td align="center" valign="top"><img src="docs/img/demo-controles.png" width="190" alt="Bloc 5 : deux remplaçants sur trois bloqués avant la signature"><br><sub><b>Bloc 5</b> : les dossiers non<br>conformes sont bloqués</sub></td>
 </tr>
 </table>
 
-**Démonstration en ligne : <https://cabinetflow.fr>** (sans compte, données fictives).
-Accès direct à la vue cabinet : `/?demo=cabinet` · à la vue remplaçant : `/?demo=remplacant`.
+**Démonstration en ligne : <https://cabinetflow.fr>** : cinq blocs à tester séparément en une trentaine de secondes chacun, sans compte, avec des données fictives. On arrive en version gratuite (l'annonce WhatsApp fonctionne réellement) ; les blocs Premium se débloquent par un essai simulé. Chaque bloc se note d'un emoji, ce qui sert à décider des priorités ([protocole](docs/tests-utilisateurs.md)).
+Accès direct : `/?demo=cabinet` (les cinq blocs, puis l'application complète en pied de page) · `/?demo=remplacant` (vue remplaçant).
 
 ## Le produit en un coup d'œil
 
@@ -24,14 +25,14 @@ Accès direct à la vue cabinet : `/?demo=cabinet` · à la vue remplaçant : `/
 | **Utilisateurs** | Les cabinets infirmiers libéraux (titulaires) qui cherchent un remplaçant, et les infirmiers remplaçants |
 | **Ce qui change** | De l'annonce au reversement, chaque étape est vérifiée ou suivie au lieu d'être gérée à la main |
 | **Ce qui le distingue** | Contrôles bloquants avant la signature (autorisation valable jusqu'au dernier jour, assurance professionnelle, règle des deux remplacements simultanés), suivi du reversement jusqu'au paiement, recommandations impossibles sans contrat signé |
-| **Modèle économique** | Abonnement pour le cabinet (hypothèse : 29 € par mois, essai de 14 jours sans carte) ; gratuit pour le remplaçant |
+| **Modèle économique** | Hypothèse testée dans la démonstration : annonce WhatsApp gratuite ; contrat, signature et suivi des honoraires en Premium (29 € par mois, essai de 14 jours sans carte) ; gratuit pour le remplaçant |
 | **Stade** | Pré-lancement : démonstration en ligne, backend sécurisé prêt mais non activé, premiers retours d'infirmiers libéraux attendus |
 
 ## Où en est le projet
 
 | Domaine | État |
 |---|---|
-| Démonstration complète (annonce, candidatures, contrôles, contrat, passation, reversement) | En ligne |
+| Démonstration en cinq blocs (annonce WhatsApp, souscription, signature, honoraires, conformité) et application complète (candidatures, contrôles, contrat, passation, reversement) | En ligne |
 | Comptes réels, synchronisés entre appareils (Supabase) | Prêt, non activé en production |
 | Isolation des données, chiffrement, droits RGPD | Implémentés et testés (225 assertions SQL) |
 | Abonnement (Stripe) | Prêt en mode test, non branché |
@@ -44,13 +45,14 @@ Accès direct à la vue cabinet : `/?demo=cabinet` · à la vue remplaçant : `/
 ## Ce que le dépôt montre côté ingénierie
 
 - **La sécurité est dans la base de données, pas dans l'interface** : isolation par cabinet imposée par Postgres (Row Level Security forcée sur toutes les tables, droits par colonne, règles métier rejouées côté serveur).
-- **Tests** : 40 tests unitaires (Vitest) et 225 assertions SQL exécutées sur un Postgres jetable, dont une matrice d'isolation entre cabinets. Les migrations sont rejouées deux fois pour prouver qu'elles sont idempotentes.
+- **Tests** : 59 tests unitaires (Vitest) et 225 assertions SQL exécutées sur un Postgres jetable, dont une matrice d'isolation entre cabinets. Les migrations sont rejouées deux fois pour prouver qu'elles sont idempotentes.
 - **Intégration continue** : lint, typage strict, tests, build, budget de taille du bundle, audit des dépendances, tests de base de données, typage des fonctions serveur, scan de secrets.
 - **Données sensibles traitées dès la conception** : chiffrement des fiches de passation, journal d'accès, purge automatique, export et suppression en libre-service ([détail](docs/securite-et-donnees.md)).
 - **Paiement** : abonnement Stripe via fonctions serveur (webhook signé et idempotent), en mode test.
+- **Démonstration sans serveur** : l'annonce d'absence voyage dans le lien WhatsApp lui-même (aucune donnée stockée) et les blocs réutilisent le vrai domaine : contrôles d'éligibilité et modèle de contrat sont ceux de l'application.
 - **Livraison simple** : application React/TypeScript produite en un seul fichier HTML ; production déployée à la main avec confirmation explicite.
 
-Environ 4 300 lignes de TypeScript (11 écrans), 1 100 lignes de migrations SQL, 540 lignes de tests SQL.
+Environ 5 200 lignes de TypeScript (écrans, feuilles de démonstration et logique métier), 1 100 lignes de migrations SQL, 540 lignes de tests SQL.
 
 ## Démarrer en local
 

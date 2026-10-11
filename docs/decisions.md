@@ -23,6 +23,9 @@ Choix structurants, avec l'alternative écartée et la raison. Chacun est réver
 | 17 | **Aucune donnée de santé hébergée au lancement** (scénario A) | Hébergement certifié dès la première version | Voir [Sécurité et données](securite-et-donnees.md) ; réversible en une ligne |
 | 18 | Production sur un hébergement mutualisé avec en-têtes de sécurité ; GitHub Pages en secours | GitHub Pages en production | Les conditions de GitHub Pages excluent l'usage commercial d'un service ; l'hébergement mutualisé permet les en-têtes de sécurité |
 | 19 | **Valider auprès d'utilisateurs avant d'investir dans de nouvelles fonctions**, avec un parcours de test unique | Mener tous les chantiers en parallèle | Base, paiement et relecture juridique restent prêts mais ne se déclenchent qu'à la suite des retours ([protocole](tests-utilisateurs.md)) |
+| 20 | Démonstration en **cinq blocs indépendants**, numérotés et notés d'un emoji | Parcours guidé unique ; une douzaine de lots fins | Chaque thème se juge seul et se nomme (« bloc 3 ») ; cinq retours en quelques minutes. Plus de lots auraient dilué l'attention, moins auraient mélangé des fonctions de valeur différente |
+| 21 | Annonce d'absence **partagée par lien WhatsApp, sans serveur** : les dates et le nom du cabinet voyagent dans l'adresse | API WhatsApp Business ; annonce stockée en base | Aucun coût ni donnée stockée pour tester le palier 1. Limite : Relève ne voit pas les réponses, donc aucun décompte |
+| 22 | La démonstration **teste un conditionnement** (annonce gratuite, contrat et finances en Premium) sans l'imposer au code | Brancher tout de suite cette règle dans la base | Les retours arbitrent d'abord ; la règle actuelle (`cabinet_actif`, publication réservée aux abonnés) ne change qu'après validation |
 
 ## Questions ouvertes
 
@@ -30,6 +33,7 @@ Choix structurants, avec l'alternative écartée et la raison. Chacun est réver
 |---|---|
 | Ordre des paliers de livraison | Voir [Produit](produit.md) ; à arbitrer avec les retours d'utilisateurs |
 | Politique tarifaire | Abonnement unique, forfait saisonnier ou modèle par paliers ([Modèle économique](modele-economique.md)) |
+| Frontière gratuit / Premium | Annonce WhatsApp gratuite seule (hypothèse de la démonstration), avec ou sans limite d'annonces par an, ou essai du tout pendant 14 jours |
 | Plan de la base de données pour les pilotes | Gratuit (pause après 7 jours d'inactivité, pas de sauvegarde) ou payant dès la première donnée réelle |
 | Entité qui facture | Société existante ou à créer |
 | Relecture juridique | Avant le premier client payant (conditions d'utilisation, confidentialité, modèle de contrat) |

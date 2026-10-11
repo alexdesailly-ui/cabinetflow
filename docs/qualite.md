@@ -16,7 +16,7 @@ Chaque changement déclenche l'intégration continue ; rien n'est fusionné sans
 
 ## Tests
 
-**40 tests unitaires** (Vitest) : calculs métier (15), synchronisation avec la base (11), actions (7), logique de paiement (7).
+**59 tests unitaires** (Vitest) : calculs métier (15), synchronisation avec la base (11), actions (7), logique de paiement (7), démonstration en blocs et dates (19).
 
 **225 assertions SQL**, exécutées avec une simulation des rôles Supabase :
 
@@ -59,6 +59,7 @@ Par niveau de risque :
 - Pas de notifications par email ou SMS (publication, expiration d'une pièce, échéance de reversement).
 - Pièces justificatives **déclaratives** : ni pièce jointe, ni contrôle dans l'annuaire des professionnels.
 - Signature **simple** (nom saisi, date posée par le serveur), pas de signature électronique qualifiée.
+- Démonstration en blocs : réponses WhatsApp simulées, aucun décompte des vraies réponses, bouton Retour du navigateur qui quitte la page au lieu de fermer la feuille ouverte ; l'interface n'est vérifiée que par des essais manuels sur navigateur (mobile, bureau, mode sombre, stockage bloqué).
 - Le mode comptes réels n'a pas encore été exercé de bout en bout contre un projet Supabase de production ; la base est installée et les tests SQL passent.
 
 ## Dette technique
@@ -74,4 +75,4 @@ Par niveau de risque :
 
 ## Taille
 
-Le fichier HTML produit pèse environ 570 Ko, soit ≈ 166 Ko compressés. Le SDK Supabase y est inclus même en démonstration : le build en fichier unique empêche le chargement différé, et le total reste sous le budget de 250 Ko.
+Le fichier HTML produit pèse environ 625 Ko, soit ≈ 181 Ko compressés. Le SDK Supabase y est inclus même en démonstration : le build en fichier unique empêche le chargement différé, et le total reste sous le budget de 250 Ko.
