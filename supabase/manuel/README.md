@@ -1,9 +1,9 @@
 # Scripts à appliquer à la main
 
-Le connecteur Supabase utilisé depuis Claude refuse silencieusement les scripts
-contenant `DROP` ou `DELETE`. Les fonctions ci-dessous en contiennent par nature
-(effacement de compte RGPD, purge de rétention) : elles s'appliquent depuis le
-tableau de bord Supabase, *SQL Editor → New query → coller → Run*.
+Certains outils d'exécution SQL automatisée rejettent les scripts contenant `DROP` ou
+`DELETE`. Les fonctions ci-dessous en contiennent par nature (suppression de compte
+RGPD, purge de rétention) : elles s'appliquent depuis la console Supabase,
+*SQL Editor → New query → coller → Run*.
 
 | Fichier | Quand | Contenu |
 |---|---|---|

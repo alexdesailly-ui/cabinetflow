@@ -1,5 +1,5 @@
 -- Relève — données sensibles, droits RGPD, rétention.
--- Commun aux scénarios A et B de DONNEES_SANTE.md :
+-- Commun aux scénarios A et B (docs/securite-et-donnees.md) :
 --   * chiffrement au repos de la fiche de passation (pgcrypto, clé hors base) ;
 --   * accès uniquement par RPC, contrôlé (fenêtre J-7 → J+3) et journalisé ;
 --   * export et suppression de compte ;
@@ -113,7 +113,7 @@ begin
   perform private.quota('fiche_ecriture:' || auth.uid(), 60, 3600);
   perform private.valider_fiche(contenu);
   if nb > 0 and not coalesce((private.parametre('fiche_patients_autorises'))::boolean, false) then
-    raise exception 'Liste de patients désactivée : hébergement non certifié HDS (voir DONNEES_SANTE.md)' using errcode = '42501';
+    raise exception 'Liste de patients désactivée : hébergement non certifié HDS' using errcode = '42501';
   end if;
   insert into public.fiches_tournee (mission_id, contenu_chiffre, nb_patients, maj_le, maj_par)
   values (mission, private.chiffrer(contenu - 'missionId' - 'majLe'), nb, now(), auth.uid())

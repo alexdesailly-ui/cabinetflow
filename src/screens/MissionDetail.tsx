@@ -271,7 +271,7 @@ function Passation({ m, c, estCabinet }: { m: Mission; c?: Contrat; estCabinet: 
   const modele = e.fiches.filter(f => f.missionId !== m.id && e.missions.find(x => x.id === f.missionId)?.cabinetId === m.cabinetId).sort((a, b) => b.majLe.localeCompare(a.majLe))[0]
   const [edit, setEdit] = useState(!fiche && estCabinet)
   const [f, setF] = useState(() => fiche ?? { missionId: m.id, patients: [] as PatientTournee[], accesCabinet: '', pharmacie: '', medecinReferent: '', consignes: '', majLe: '' })
-  // Scénario A (DONNEES_SANTE.md) : en mode cloud, la liste des patients n'est pas hébergée.
+  // Scénario A (docs/securite-et-donnees.md) : en mode cloud, la liste des patients n'est pas hébergée.
   const patientsAutorises = !e.cloud || e.cloud.fichePatientsAutorises
   const complet = !!(c?.signatureTitulaire && c?.signatureRemplacant)
   const visibleRemplacant = complet && joursEntre(new Date(), m.du) <= 7 && joursEntre(new Date(), m.au) >= -3

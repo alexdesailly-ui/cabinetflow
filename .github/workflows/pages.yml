@@ -1,6 +1,5 @@
 # SECOURS : publie l'application sur GitHub Pages — MANUELLEMENT uniquement.
 # La production est sur Hostinger (deploy-hostinger.yml → https://cabinetflow.fr).
-# URL : https://alexdesailly-ui.github.io/cabinetflow/
 # Avec les variables de dépôt VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY, la prod
 # est en mode cloud (comptes réels) ; sans elles, c'est la démo locale.
 name: Déployer le secours (GitHub Pages)
