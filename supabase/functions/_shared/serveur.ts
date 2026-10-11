@@ -13,7 +13,7 @@ export function env(nom: string): string {
 export function stripe(): Stripe {
   const cle = env('STRIPE_SECRET_KEY')
   if (cle.startsWith('sk_live_') && Deno.env.get('STRIPE_LIVE_AUTORISE') !== 'oui') {
-    throw new Error('Clé Stripe live refusée : poser STRIPE_LIVE_AUTORISE=oui après validation (voir STRIPE.md)')
+    throw new Error('Clé Stripe live refusée : poser STRIPE_LIVE_AUTORISE=oui après validation explicite')
   }
   return new Stripe(cle, { httpClient: Stripe.createFetchHttpClient() })
 }

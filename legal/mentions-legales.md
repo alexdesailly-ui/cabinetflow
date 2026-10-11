@@ -19,7 +19,7 @@ Contact : [adresse email de contact].
 
 Relève est un outil d'organisation du remplacement entre infirmiers libéraux. Il ne fournit **aucun conseil juridique, fiscal ou comptable**. Le modèle de contrat est un modèle de travail à relire par les parties ; les montants de rétrocession sont des estimations.
 
-Relève n'est ni un établissement de santé ni un logiciel de dossier patient. [Scénario A] Aucune donnée de santé n'est hébergée par Relève.
+Relève n'est ni un établissement de santé ni un logiciel de dossier patient. Aucune donnée de santé de patient n'est hébergée par Relève.
 
 ## Propriété intellectuelle
 

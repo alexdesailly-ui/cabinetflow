@@ -32,7 +32,7 @@ export interface Etat {
 
 export interface EtatCloud {
   email?: string
-  /** Scénario A/B de DONNEES_SANTE.md : la liste de patients est-elle autorisée côté serveur ? */
+  /** Scénario A/B (docs/securite-et-donnees.md) : la liste de patients est-elle autorisée côté serveur ? */
   fichePatientsAutorises: boolean
   abonnement?: { statut: string; intervalle?: string; finPeriode?: string; annulationFinPeriode: boolean }
   synchronisation: 'ok' | 'en-cours' | 'erreur'

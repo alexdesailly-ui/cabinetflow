@@ -1,8 +1,8 @@
-# Production : https://cabinetflow.fr (Hostinger), même mécanique que scm-garnier.
+# Production : https://cabinetflow.fr (hébergement mutualisé, déploiement par FTP).
 # MANUEL uniquement : Actions → « Déployer la prod (Hostinger) » → Run workflow → taper DEPLOYER.
 # Secret requis dans CE dépôt : FTP_PASS (Settings → Secrets and variables → Actions).
 # Variables facultatives : VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY (mode comptes réels),
-# HOSTINGER_FTP_HOST / HOSTINGER_FTP_USER (sinon valeurs du compte partagé avec scm-garnier).
+# HOSTINGER_FTP_HOST / HOSTINGER_FTP_USER / HOSTINGER_REMOTE_DIR (sinon valeurs par défaut ci-dessous).
 name: Déployer la prod (Hostinger)
 
 on:

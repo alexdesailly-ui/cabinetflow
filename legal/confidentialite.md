@@ -1,6 +1,6 @@
 # Politique de confidentialité
 
-> **BROUILLON — À valider par avocat.** Rédigée pour le scénario A de `DONNEES_SANTE.md` (aucune donnée de santé hébergée). À réécrire si le scénario B est retenu.
+> **BROUILLON — À valider par un avocat avant toute ouverture au public.** Rédigée pour une version qui n'héberge aucune donnée de santé ; à réécrire si ce périmètre change.
 
 ## Qui est responsable de vos données ?
 
