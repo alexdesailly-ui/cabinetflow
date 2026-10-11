@@ -79,6 +79,7 @@ Le mode « comptes réels » s'active uniquement si `VITE_SUPABASE_URL` et `VITE
 | [Sécurité et données](docs/securite-et-donnees.md) | Décision sur les données de santé, RGPD, mesures en place |
 | [Qualité](docs/qualite.md) | Tests, intégration continue, points d'attention, limites connues |
 | [Exploitation](docs/exploitation.md) | Mise en ligne, variables et secrets, paiement, déploiement |
+| [Avant la première vente](docs/avant-premiere-vente.md) | Prérequis à lever avant le premier client payant |
 | [Décisions](docs/decisions.md) | Choix structurants et alternatives écartées |
 | [Validation auprès d'utilisateurs](docs/tests-utilisateurs.md) | Protocole de recueil des priorités |
 
