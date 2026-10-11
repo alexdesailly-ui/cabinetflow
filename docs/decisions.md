@@ -26,8 +26,6 @@ Choix structurants, avec l'alternative écartée et la raison. Chacun est réver
 
 ## Questions ouvertes
 
-Ce qui doit être fait avant le premier client payant est regroupé dans [Avant la première vente](avant-premiere-vente.md).
-
 | Sujet | Options |
 |---|---|
 | Ordre des paliers de livraison | Voir [Produit](produit.md) ; à arbitrer avec les retours d'utilisateurs |
