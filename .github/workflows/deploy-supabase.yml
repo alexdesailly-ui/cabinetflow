@@ -1,0 +1,44 @@
+# Applique les migrations et déploie les fonctions sur le projet Supabase.
+# Manuel uniquement. Remplace le collage de SQL dans la console : la CLI n'a pas le garde-fou
+# qui refuse DROP et DELETE dans les outils d'exécution automatique.
+#
+# À configurer une fois (Réglages du dépôt → Secrets and variables → Actions) :
+#   secret   SUPABASE_ACCESS_TOKEN  jeton personnel (supabase.com/dashboard/account/tokens)
+#   secret   SUPABASE_DB_PASSWORD    mot de passe de la base (Réglages du projet → Database)
+#   variable SUPABASE_PROJECT_REF    identifiant du projet (courte chaîne de l'adresse du projet)
+name: Déploiement Supabase
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: 'Saisir DEPLOYER pour appliquer les migrations et déployer les fonctions'
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  deployer:
+    name: Migrations et fonctions
+    runs-on: ubuntu-latest
+    if: inputs.confirmation == 'DEPLOYER' && github.ref == 'refs/heads/main'
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+      REF: ${{ vars.SUPABASE_PROJECT_REF }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - run: supabase link --project-ref "$REF"
+      - name: Historique des migrations
+        # Le projet a d'abord été alimenté à la main : ses versions ne correspondent pas aux fichiers.
+        # Les migrations se rejouent sans effet (testé deux fois par la CI) ; seul l'historique est réaligné.
+        run: |
+          anciennes=$(supabase migration list | awk -F'|' 'NR>2 && $2 ~ /[0-9]/ && $1 !~ /[0-9]/ {gsub(/ /,"",$2); print $2}')
+          if [ -n "$anciennes" ]; then supabase migration repair --status reverted $anciennes; fi
+      - run: supabase db push --include-all
+      - run: supabase functions deploy stripe-checkout stripe-portal stripe-sync
+      - run: supabase functions deploy stripe-webhook --no-verify-jwt
