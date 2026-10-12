@@ -9,24 +9,27 @@ Chaque changement déclenche l'intégration continue ; rien n'est fusionné sans
 | Lint, types, tests, build | ESLint, TypeScript en mode strict, tests unitaires, construction du fichier HTML |
 | Budget de taille | Alerte au-delà de 250 Ko compressés (actuel : ≈ 166 Ko) |
 | Audit des dépendances livrées | Échec en cas de vulnérabilité haute dans ce qui part au navigateur |
-| Base de données | Postgres 16 jetable : migrations appliquées **deux fois**, jeu de données, 225 assertions SQL |
-| Fonctions serveur | Vérification des types (Deno) |
+| Base de données | Postgres 17 jetable : migrations appliquées **deux fois**, jeu de données, 254 assertions SQL |
+| Fonctions serveur | Types (Deno) et 16 essais de bout en bout avec de fausses réponses HTTP |
+| Navigateur | 36 parcours (mobile et bureau) : annonce, réponse, suivi, liens invalides, accessibilité WCAG AA (axe) |
+| Mise en forme | Prettier |
 | Secrets | Scan de tout l'historique (gitleaks) |
 | Aperçu de chaque proposition de changement | Déploiement de prévisualisation (inactif tant que les accès ne sont pas configurés) |
 
 ## Tests
 
-**59 tests unitaires** (Vitest) : calculs métier (15), synchronisation avec la base (11), actions (7), logique de paiement (7), démonstration en blocs et dates (19).
+**154 tests unitaires** (Vitest) : calculs métier, synchronisation, dates, annonce et stockage local, logique de paiement.
 
-**225 assertions SQL**, exécutées avec une simulation des rôles Supabase :
+**254 assertions SQL**, exécutées avec une simulation des rôles Supabase :
 
 | Fichier | Assertions | Objet |
 |---|---|---|
 | `01_couverture_rls` | 10 | Chaque table a la sécurité par ligne activée et forcée |
 | `02_isolation_cabinets` | 140 | Matrice quatre cabinets × dix tables : aucun accès croisé |
 | `03_regles_metier` | 41 | Éligibilité, signature, parrainage, accès à la publication |
-| `04_donnees_sensibles_rgpd` | 26 | Chiffrement, fenêtre d'accès à la fiche, export, suppression, rétention |
-| `05_stripe` | 8 | Abonnement écrit uniquement par le webhook |
+| `04_donnees_sensibles_rgpd` | 29 | Chiffrement, fenêtre d'accès à la fiche, export, suppression, rétention |
+| `05_stripe` | 22 | Abonnement écrit par le service seul, classé par heure de lecture |
+| `06_ecritures` | 12 | Écritures sur pièces et rétrocessions, une politique par commande |
 
 Commandes : `npm run check` et `npm run test:db`.
 
@@ -55,16 +58,15 @@ Par niveau de risque :
 
 ## Limites connues
 
-- Pas de tests de bout en bout dans un navigateur (parcours inscription → mission → signature).
+- Le paiement n'a pas été exercé contre Stripe (aucune clé fournie) ; la base réelle a été contrôlée (`supabase/outils`), pas le cycle d'abonnement complet.
 - Pas de notifications par email ou SMS (publication, expiration d'une pièce, échéance de reversement).
 - Pièces justificatives **déclaratives** : ni pièce jointe, ni contrôle dans l'annuaire des professionnels.
 - Signature **simple** (nom saisi, date posée par le serveur), pas de signature électronique qualifiée.
-- Démonstration en blocs : réponses WhatsApp simulées, aucun décompte des vraies réponses, bouton Retour du navigateur qui quitte la page au lieu de fermer la feuille ouverte ; l'interface n'est vérifiée que par des essais manuels sur navigateur (mobile, bureau, mode sombre, stockage bloqué).
-- Le mode comptes réels n'a pas encore été exercé de bout en bout contre un projet Supabase de production ; la base est installée et les tests SQL passent.
+- Mode comptes réels : base contrôlée sur le projet Supabase réel ; envoi du code par e-mail non éprouvé (SMTP et modèle à configurer).
 
 ## Dette technique
 
-- Fichiers denses (une ligne de JSX peut dépasser 400 caractères) : lisibles pour l'auteur, plus coûteux pour un relecteur. Aucun reformatage global n'a été appliqué pour ne pas noyer l'historique ; un formateur automatique est envisageable.
+- Fichiers volumineux : `MissionDetail.tsx` et `ProduitComplet.tsx` méritent d'être découpés.
 - L'état est copié à chaque mutation (`JSON.parse(JSON.stringify(...))`) : négligeable aujourd'hui, à revoir au-delà de quelques milliers d'objets.
 - En démonstration, les identifiants sont générés côté client ; en mode comptes réels, ils sont générés par le serveur.
 
