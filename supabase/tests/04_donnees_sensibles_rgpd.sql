@@ -62,6 +62,17 @@ select tests.systeme();
 select tests.ok(not exists (select 1 from public.comptes where id = '20000000-0000-4000-a000-000000000005')
   and not exists (select 1 from auth.users where id = tests.uid(15)), 'effacement : Nadia (sans contrat) entièrement supprimée');
 
+-- Effacement : un abonnement qui se renouvelle se résilie d'abord, sinon Stripe continuerait de prélever
+select tests.connecter(4);
+select tests.refuse($$select public.rgpd_supprimer_mon_compte('SUPPRIMER')$$, 'effacement refusé tant que l''abonnement se renouvelle', 'Résiliez');
+select tests.systeme();
+select tests.ok(exists (select 1 from auth.users where id = tests.uid(4)), 'le refus n''a rien supprimé');
+update public.subscriptions set cancel_at_period_end = true where cabinet_id = '10000000-0000-4000-a000-000000000004';
+select tests.connecter(4);
+select public.rgpd_supprimer_mon_compte('SUPPRIMER');
+select tests.systeme();
+select tests.ok(not exists (select 1 from auth.users where id = tests.uid(4)), 'effacement accepté une fois la résiliation programmée');
+
 -- Effacement : compte lié à des contrats → anonymisé, contrats conservés pour l'autre partie
 select tests.connecter(11);
 select public.rgpd_supprimer_mon_compte('SUPPRIMER');

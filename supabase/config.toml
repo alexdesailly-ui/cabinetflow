@@ -11,7 +11,7 @@ max_rows = 1000
 
 [db]
 port = 54322
-major_version = 15
+major_version = 17
 
 [db.seed]
 enabled = true
@@ -51,4 +51,7 @@ verify_jwt = false
 verify_jwt = true
 
 [functions.stripe-portal]
+verify_jwt = true
+
+[functions.stripe-sync]
 verify_jwt = true
