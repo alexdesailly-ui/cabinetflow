@@ -8,9 +8,8 @@ Relève outille tout ce parcours : annoncer une absence, recevoir des candidatur
 
 <table>
 <tr>
-<td align="center" valign="top"><img src="docs/img/demo-whatsapp.png" width="190" alt="Bloc 1 : l'annonce d'absence prête à partir sur WhatsApp"><br><sub><b>Bloc 1 · gratuit</b> : l'annonce<br>part vraiment sur WhatsApp</sub></td>
-<td align="center" valign="top"><img src="docs/img/demo-premium.png" width="190" alt="Bloc 3 : essai Premium de 14 jours sans carte bancaire"><br><sub><b>Bloc 3 · Premium</b> :<br>14 jours gratuits, sans carte</sub></td>
-<td align="center" valign="top"><img src="docs/img/demo-controles.png" width="190" alt="Bloc 5 : deux remplaçants sur trois bloqués avant la signature"><br><sub><b>Bloc 5</b> : les dossiers non<br>conformes sont bloqués</sub></td>
+<td align="center" valign="top"><img src="docs/img/annoncer.png" width="230" alt="L'annonce d'absence prête à partir sur WhatsApp"><br><sub><b>Le cabinet annonce</b> :<br>aperçu, puis WhatsApp</sub></td>
+<td align="center" valign="top"><img src="docs/img/remplacant.png" width="230" alt="Page ouverte par le remplaçant : un tap pour répondre"><br><sub><b>Le remplaçant répond</b><br>d'un tap</sub></td>
 </tr>
 </table>
 
