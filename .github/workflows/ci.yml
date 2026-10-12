@@ -41,7 +41,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: postgres:16
+        image: postgres:17
         env:
           POSTGRES_PASSWORD: postgres
         ports: ['5432:5432']
@@ -54,14 +54,16 @@ jobs:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
 
   fonctions:
-    name: Edge Functions (typage Deno)
+    name: Edge Functions (typage et essai de bout en bout)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: denoland/setup-deno@v2
         with:
           deno-version: v2.x
-      - run: deno check stripe-checkout/index.ts stripe-portal/index.ts stripe-webhook/index.ts
+      - run: deno check stripe-checkout/index.ts stripe-portal/index.ts stripe-sync/index.ts stripe-webhook/index.ts
+        working-directory: supabase/functions
+      - run: deno test -A fonctions_test.ts
         working-directory: supabase/functions
 
   secrets:

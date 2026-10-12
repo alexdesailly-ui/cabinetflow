@@ -9,7 +9,7 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { passerEnDemo } from '../store'
 import { MODE_CLOUD, SUPABASE_ANON_KEY, SUPABASE_URL } from './config'
-import { demarrer, signalerErreur, traduire } from './sync'
+import { demarrer, recharger, signalerErreur, traduire } from './sync'
 
 let client: SupabaseClient | null = null
 
@@ -81,6 +81,7 @@ export async function initialiserCloud(): Promise<void> {
   try {
     const r = await ouvrirSession()
     if (r === 'profil-a-completer') location.hash = '#/onboarding/cabinet'
+    else await terminerPaiement()
   } catch (e) {
     signalerErreur(e instanceof Error ? e.message : String(e))
   }
@@ -106,10 +107,35 @@ export async function supprimerMonCompte() {
   await deconnecter()
 }
 
+/** Message renvoyé par une Edge Function (« Abonnement déjà actif… »), à défaut un texte générique. */
+async function messageDeFonction(erreur: unknown): Promise<string> {
+  try {
+    const corps = await (erreur as { context?: Response }).context?.json()
+    if (typeof corps?.erreur === 'string') return corps.erreur
+  } catch { /* corps absent ou illisible */ }
+  return 'Paiement indisponible pour le moment.'
+}
+
 /** Ouvre Stripe Checkout (abonnement) ou le portail client (gestion). */
 export async function ouvrirStripe(action: 'checkout' | 'portal', intervalle: 'month' | 'year' = 'month') {
   const { data, error } = await supabase().functions.invoke(`stripe-${action}`, { body: { intervalle, retour: location.origin + location.pathname + '#/compte' } })
-  if (error) throw new Error('Paiement indisponible pour le moment.')
+  if (error) throw new Error(await messageDeFonction(error))
   if (!data?.url) throw new Error('Réponse de paiement invalide.')
   location.href = data.url as string
+}
+
+/**
+ * Retour de Stripe (?paiement=ok) : le webhook arrive parfois après la redirection. On aligne
+ * l'abonnement sur Stripe tout de suite, pour que le cabinet voie son accès sans attendre.
+ */
+async function terminerPaiement() {
+  const params = new URLSearchParams(location.search)
+  if (params.get('paiement') !== 'ok') return
+  params.delete('paiement')
+  const reste = params.toString()
+  history.replaceState(null, '', location.pathname + (reste ? `?${reste}` : '') + location.hash)
+  const sb = supabase()
+  const { error } = await sb.functions.invoke('stripe-sync')
+  if (error) throw new Error('Votre paiement est enregistré, mais l’abonnement met du temps à s’afficher : rechargez la page dans un instant.')
+  await recharger(sb)
 }
