@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { Banner, Btn, Ic, useToast } from '../../components/ui'
 import { mondeDemo, texteContratDemo } from '../../lib/demoFixtures'
-import { alerteCDOI, formatDate, formatPeriode } from '../../lib/domain'
+import { alerteCDOI } from '../../lib/domain'
+import { formatDate, formatPeriode } from '../../lib/dates'
 import { Feuille, type PropsBloc } from './Feuille'
 
 /** Bloc 3 (Premium) : le contrat réel du produit, signé d'un glissement de doigt. */

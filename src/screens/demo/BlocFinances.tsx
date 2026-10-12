@@ -3,7 +3,8 @@ import { Banner, Btn, Ic, Pill, useToast } from '../../components/ui'
 import { urlWhatsApp } from '../../lib/annonce'
 import { basculerInteretEncaissement, useDemo } from '../../lib/demoState'
 import { mondeDemo } from '../../lib/demoFixtures'
-import { estimerRetrocession, euros, formatDate, formatPeriode } from '../../lib/domain'
+import { estimerRetrocession, euros } from '../../lib/domain'
+import { formatDate, formatPeriode } from '../../lib/dates'
 import { Feuille, LienBtn, type PropsBloc } from './Feuille'
 
 /** Bloc 4 (Premium) : calcul et suivi du reversement. L'encaissement automatique n'existe pas encore : on mesure l'intérêt. */

@@ -15,10 +15,9 @@ import {
   conformite,
   estimerRetrocession,
   euros,
-  formatDate,
-  joursEntre,
   montantLigne,
 } from '../lib/domain'
+import { formatDate, joursEntre } from '../lib/dates'
 import { BADGES, badgesPour, pouls } from '../lib/gamification'
 import { FiabiliteBloc } from './Parrainage'
 import { go } from '../lib/router'

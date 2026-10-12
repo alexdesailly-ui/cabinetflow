@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { Btn, Ic, Pill } from '../components/ui'
 import { decoderAnnonce, messageReponse, nombreDeJours, urlWhatsApp } from '../lib/annonce'
-import { formatPeriode } from '../lib/domain'
+import { formatPeriode } from '../lib/dates'
 import { go } from '../lib/router'
 import { LienBtn } from './demo/Feuille'
 

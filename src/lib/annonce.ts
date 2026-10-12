@@ -1,4 +1,4 @@
-import { formatPeriode, joursEntre } from './domain'
+import { formatPeriode, joursEntre } from './dates'
 
 /**
  * Annonce d'absence partageable sur WhatsApp, sans serveur : tout ce qu'il faut

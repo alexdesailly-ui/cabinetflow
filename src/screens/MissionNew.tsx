@@ -12,7 +12,8 @@ import {
   useToast,
 } from '../components/ui'
 import { enregistrerMission, publierMission } from '../lib/actions'
-import { dansNJours, estimerRetrocession, euros, joursEntre } from '../lib/domain'
+import { estimerRetrocession, euros } from '../lib/domain'
+import { dansNJours, joursEntre } from '../lib/dates'
 import { go } from '../lib/router'
 import { SOINS } from '../lib/seed'
 import type { Account, MotifRemplacement } from '../lib/types'

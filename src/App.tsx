@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Avatar, Btn, Ic, Pill, ToastProvider, useToast } from './components/ui'
 import { attribuerBadges, seConnecter, seDeconnecter } from './lib/actions'
-import { formatDate } from './lib/domain'
+import { formatDate } from './lib/dates'
 import { BADGES, badgesPour, nouveauxBadges } from './lib/gamification'
 import { go, useRoute, type Route } from './lib/router'
 import { DEMO_CABINET, DEMO_REMPLACANT, semerDemo } from './lib/seed'

@@ -1,4 +1,4 @@
-import { formatDate } from './domain'
+import { formatDate } from './dates'
 import type { Account, Contrat, Mission } from './types'
 
 /**

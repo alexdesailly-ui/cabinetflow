@@ -1,4 +1,5 @@
-import { dansNJours, genererCode } from './domain'
+import { genererCode } from './domain'
+import { dansNJours } from './dates'
 import { maintenant, mutate, type Etat } from './store'
 import type { Account, Piece } from './types'
 

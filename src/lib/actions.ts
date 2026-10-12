@@ -1,9 +1,5 @@
-import {
-  MOIS_OFFERTS_PAR_PARRAINAGE,
-  PLAFOND_MOIS_OFFERTS_PAR_AN,
-  dansNJours,
-  genererCode,
-} from './domain'
+import { MOIS_OFFERTS_PAR_PARRAINAGE, PLAFOND_MOIS_OFFERTS_PAR_AN, genererCode } from './domain'
+import { dansNJours } from './dates'
 import { id, maintenant, mutate, type Etat } from './store'
 import type {
   Account,

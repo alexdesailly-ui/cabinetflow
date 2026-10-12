@@ -33,11 +33,9 @@ import {
   controlerAffectation,
   estimerRetrocession,
   euros,
-  formatDate,
-  formatDateCourte,
-  joursEntre,
   montantLigne,
 } from '../lib/domain'
+import { formatDate, formatDateCourte, joursEntre } from '../lib/dates'
 import { go } from '../lib/router'
 import { compte, contratDeMission, contratsDuRemplacant, recosVers, useStore } from '../lib/store'
 import type { Account, Contrat, Mission, PatientTournee } from '../lib/types'

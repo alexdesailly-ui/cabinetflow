@@ -10,7 +10,8 @@ import {
   useCountUp,
   useRepere,
 } from '../components/ui'
-import { alerteCDOI, conformite, euros, formatDate, joursEntre, montantLigne } from '../lib/domain'
+import { alerteCDOI, conformite, euros, montantLigne } from '../lib/domain'
+import { formatDate, joursEntre } from '../lib/dates'
 import { fiabilite, joursDeReposSecurises, pouls } from '../lib/gamification'
 import { go } from '../lib/router'
 import { compte, contratDeMission, missionsDuCabinet, useStore } from '../lib/store'

@@ -2,11 +2,11 @@ import {
   AVANTAGES,
   conformite,
   etatPiece,
-  joursEntre,
   niveauPour,
   scoreDepuisCriteres,
   type Fiabilite,
 } from './domain'
+import { joursEntre } from './dates'
 import type { Etat } from './store'
 import { contratsDuRemplacant, recosVers } from './store'
 import type { Account } from './types'

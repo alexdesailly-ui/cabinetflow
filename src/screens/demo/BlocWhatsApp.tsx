@@ -9,7 +9,7 @@ import {
 } from '../../lib/annonce'
 import { DEBUT_PAR_DEFAUT, mondeDemo } from '../../lib/demoFixtures'
 import { estVerrouille, useDemo } from '../../lib/demoState'
-import { dansNJours, formatPeriode } from '../../lib/domain'
+import { dansNJours, formatPeriode } from '../../lib/dates'
 import { Feuille, LienBtn, type PropsBloc } from './Feuille'
 
 const DUREES = [7, 14, 21]

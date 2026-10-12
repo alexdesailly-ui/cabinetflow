@@ -15,7 +15,8 @@ import {
   useToast,
 } from '../components/ui'
 import { inviter, simulerActivationFilleul } from '../lib/actions'
-import { PLAFOND_MOIS_OFFERTS_PAR_AN, formatDate, lienParrainage } from '../lib/domain'
+import { PLAFOND_MOIS_OFFERTS_PAR_AN, lienParrainage } from '../lib/domain'
+import { formatDate } from '../lib/dates'
 import { fiabilite, pouls } from '../lib/gamification'
 import { compte, invitationsDe, useStore } from '../lib/store'
 import type { Account, Invitation } from '../lib/types'

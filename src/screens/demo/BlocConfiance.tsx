@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Avatar, Banner, Btn, Ic, Pill } from '../../components/ui'
 import { controlesDe, mondeDemo } from '../../lib/demoFixtures'
-import { formatDate } from '../../lib/domain'
+import { formatDate } from '../../lib/dates'
 import { Feuille, type PropsBloc } from './Feuille'
 
 const jourDecale = (iso: string, n: number) =>

@@ -13,7 +13,8 @@ import {
   useToast,
 } from '../components/ui'
 import { inviter } from '../lib/actions'
-import { PIECES, conformite, etatPiece, formatDate } from '../lib/domain'
+import { PIECES, conformite, etatPiece } from '../lib/domain'
+import { formatDate } from '../lib/dates'
 import { fiabilite } from '../lib/gamification'
 import { go } from '../lib/router'
 import { compte, contratsDuRemplacant, recosVers, useStore } from '../lib/store'

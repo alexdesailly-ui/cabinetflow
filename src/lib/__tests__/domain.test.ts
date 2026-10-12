@@ -3,7 +3,6 @@ import {
   alerteCDOI,
   conformite,
   controlerAffectation,
-  dansNJours,
   estimerRetrocession,
   etatPiece,
   genererCode,
@@ -11,6 +10,7 @@ import {
   niveauPour,
   scoreDepuisCriteres,
 } from '../domain'
+import { dansNJours } from '../dates'
 import type { Account, Contrat, Mission, Piece } from '../types'
 
 const remplacant = (pieces: Piece[], extra: Partial<Account> = {}): Account => ({

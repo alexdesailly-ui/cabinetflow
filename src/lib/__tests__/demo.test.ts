@@ -12,7 +12,7 @@ import {
 } from '../annonce'
 import { BLOCS, messageAvis } from '../demoBlocs'
 import { controlesDe, mondeDemo, texteContratDemo } from '../demoFixtures'
-import { formatDate, formatPeriode } from '../domain'
+import { formatDate, formatPeriode } from '../dates'
 import {
   basculerInteretEncaissement,
   choisirOffre,

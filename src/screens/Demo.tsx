@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Btn, Chips, Field, Ic, Modal, useToast } from '../components/ui'
-import { formatDate } from '../lib/domain'
+import { formatDate } from '../lib/dates'
 
 /**
  * Recueil d'avis, sans backend : l'avis reste sur l'appareil et s'envoie
