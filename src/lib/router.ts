@@ -3,7 +3,7 @@ import type { Role } from './types'
 
 export type Route =
   | { name: 'landing' }
-  | { name: 'demo' }
+  | { name: 'annoncer' }
   | { name: 'annonce'; code: string }
   | { name: 'invite'; code: string; nom?: string }
   | { name: 'onboarding'; role: Role; parrain?: string }
@@ -23,9 +23,8 @@ export type PageLegale = 'mentions' | 'confidentialite' | 'cgu'
 
 function parse(): Route {
   const params = new URLSearchParams(location.search)
-  const demo = params.get('demo')
-  // Lien direct de la démo : la vue cabinet ouvre la démo en blocs, la vue remplaçant garde l'accueil complet.
-  if (demo && !location.hash) return demo === 'remplacant' ? { name: 'landing' } : { name: 'demo' }
+  // Anciens liens de démonstration (?demo=cabinet) : ils ouvrent l'outil d'annonce.
+  if (params.get('demo') && !location.hash) return { name: 'annoncer' }
   const p = params.get('p')
   if (p && !location.hash) return { name: 'invite', code: p, nom: params.get('n') ?? undefined }
   const h = location.hash.replace(/^#\/?/, '')
@@ -33,8 +32,8 @@ function parse(): Route {
   switch (a) {
     case '':
       return { name: 'landing' }
-    case 'demo':
-      return { name: 'demo' }
+    case 'annoncer':
+      return { name: 'annoncer' }
     case 'annonce':
       return { name: 'annonce', code: b ?? '' }
     case 'invite':

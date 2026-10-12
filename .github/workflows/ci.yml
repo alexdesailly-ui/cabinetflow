@@ -37,6 +37,19 @@ jobs:
       - name: Dépendances livrées sans vulnérabilité haute
         run: npm audit --omit=dev --audit-level=high
 
+  navigateur:
+    name: Parcours dans un navigateur (annonce, accessibilité)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test
+
   base:
     name: Base de données (RLS, isolation, RGPD)
     runs-on: ubuntu-latest

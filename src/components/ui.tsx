@@ -3,6 +3,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useId,
   useMemo,
   useRef,
   useState,
@@ -220,6 +221,7 @@ export function Btn({
   variant = 'primary',
   size,
   block,
+  grand,
   icon: Icon,
   ...rest
 }: {
@@ -227,13 +229,92 @@ export function Btn({
   variant?: 'primary' | 'ghost' | 'soft' | 'encre' | 'danger'
   size?: 'sm'
   block?: boolean
+  grand?: boolean
   icon?: (p: { className?: string }) => JSX.Element
 } & React.ButtonHTMLAttributes<HTMLButtonElement>) {
   return (
-    <button className={`btn ${variant} ${size ?? ''} ${block ? 'block' : ''}`} {...rest}>
+    <button
+      className={`btn ${variant} ${size ?? ''} ${block ? 'block' : ''} ${grand ? 'grand' : ''}`}
+      {...rest}
+    >
       {Icon && <Icon />}
       {children}
     </button>
+  )
+}
+
+/** Lien qui s'ouvre dans un nouvel onglet, avec l'apparence d'un bouton (WhatsApp, e-mail). */
+export function LienBtn({
+  href,
+  children,
+  variant = 'primary',
+  size,
+  block,
+  grand,
+  icon: Icon,
+  onClick,
+}: {
+  href: string
+  children: ReactNode
+  variant?: 'primary' | 'ghost' | 'soft'
+  size?: 'sm'
+  block?: boolean
+  grand?: boolean
+  icon?: (p: { className?: string }) => JSX.Element
+  onClick?: () => void
+}) {
+  const externe = /^https?:/.test(href)
+  return (
+    <a
+      className={`btn ${variant} ${size ?? ''} ${block ? 'block' : ''} ${grand ? 'grand' : ''}`}
+      href={href}
+      onClick={onClick}
+      {...(externe ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+    >
+      {Icon && <Icon />}
+      {children}
+    </a>
+  )
+}
+
+/** Champ de formulaire dont l'étiquette, l'aide et l'erreur sont reliées au controle (lecteurs d'écran compris). */
+export function Champ({
+  label,
+  aide,
+  erreur,
+  children,
+}: {
+  label: string
+  aide?: string
+  erreur?: string
+  children: (controle: {
+    id: string
+    'aria-describedby'?: string
+    'aria-invalid'?: true
+  }) => ReactNode
+}) {
+  const id = useId()
+  const description = erreur ? `${id}-erreur` : aide ? `${id}-aide` : undefined
+  return (
+    <div className="field">
+      <label htmlFor={id}>{label}</label>
+      {children({
+        id,
+        'aria-describedby': description,
+        ...(erreur ? { 'aria-invalid': true as const } : {}),
+      })}
+      {erreur ? (
+        <span id={description} className="hint erreur">
+          {erreur}
+        </span>
+      ) : (
+        aide && (
+          <span id={description} className="hint">
+            {aide}
+          </span>
+        )
+      )}
+    </div>
   )
 }
 

@@ -1,76 +1,86 @@
 import { useMemo } from 'react'
-import { Btn, Ic, Pill } from '../components/ui'
-import { decoderAnnonce, messageReponse, nombreDeJours, urlWhatsApp } from '../lib/annonce'
-import { formatPeriode } from '../lib/dates'
-import { go } from '../lib/router'
-import { LienBtn } from './demo/Feuille'
+import { Ic, LienBtn, Pill } from '../components/ui'
+import { decoderAnnonce, messageReponse, urlWhatsApp } from '../lib/annonce'
+import { formatPeriodeLongue, jourLocal, nombreDeJours } from '../lib/dates'
+import { href } from '../lib/router'
 
 /**
  * Page ouverte par un remplaçant depuis un lien WhatsApp : l'annonce, un bouton.
  * Aucune inscription, aucun serveur : tout est dans le lien.
  */
 export function Annonce({ code }: { code: string }) {
-  const a = useMemo(() => decoderAnnonce(code), [code])
-  if (!a) {
+  const annonce = useMemo(() => decoderAnnonce(code), [code])
+
+  if (!annonce) {
     return (
-      <div className="stack-l" style={{ maxWidth: 520, margin: '0 auto' }}>
+      <div className="stack-l page-etroite">
         <section className="hero">
           <h1>Ce lien d’annonce n’est pas valide</h1>
           <p className="lead">
             Il est peut-être incomplet. Demandez au cabinet de vous le renvoyer.
           </p>
         </section>
-        <Btn variant="ghost" onClick={() => go({ name: 'landing' })}>
+        <a className="btn ghost" href={href({ name: 'landing' })}>
           Découvrir Relève
-        </Btn>
+        </a>
       </div>
     )
   }
+
+  const jours = nombreDeJours(annonce.du, annonce.au)
+  const terminee = annonce.au < jourLocal()
+
   return (
-    <div className="stack-l" style={{ maxWidth: 520, margin: '0 auto' }}>
+    <div className="stack-l page-etroite">
       <section className="hero">
         <div>
-          <Pill tone="accent" icon={Ic.calendar}>
-            Annonce de remplacement
+          <Pill tone={terminee ? 'neutral' : 'accent'} icon={Ic.calendar}>
+            {terminee ? 'Annonce terminée' : 'Annonce de remplacement'}
           </Pill>
         </div>
-        <h1>{a.cabinet} cherche un·e remplaçant·e</h1>
-        <p className="lead">Vous êtes disponible ? Répondez en un tap.</p>
+        <h1>{annonce.cabinet} cherche un·e remplaçant·e</h1>
+        <p className="lead">
+          {terminee ? 'Ces dates sont passées.' : 'Vous êtes disponible ? Répondez en un tap.'}
+        </p>
       </section>
+
       <div className="card facts">
-        <div style={{ gridColumn: '1 / -1' }}>
+        <div className="pleine-largeur">
           <div className="k">Dates</div>
           <div className="v">
-            {formatPeriode(a.du, a.au)} · {nombreDeJours(a.du, a.au)} jours
+            {formatPeriodeLongue(annonce.du, annonce.au)} · {jours} jour{jours > 1 ? 's' : ''}
           </div>
         </div>
         <div>
           <div className="k">Lieu</div>
-          <div className="v">{a.ville}</div>
-        </div>
-        <div>
-          <div className="k">Motif</div>
-          <div className="v">{a.motif}</div>
+          <div className="v">{annonce.ville}</div>
         </div>
       </div>
-      <LienBtn block grand icon={Ic.msg} href={urlWhatsApp(messageReponse(a), a.tel)}>
-        Je suis partant(e)
-      </LienBtn>
-      <p className="small muted">
-        Un tap : WhatsApp s’ouvre sur un message déjà écrit pour le cabinet. Aucune inscription.
-      </p>
+
+      {!terminee && (
+        <>
+          <LienBtn
+            block
+            grand
+            icon={Ic.msg}
+            href={urlWhatsApp(messageReponse(annonce), annonce.tel)}
+          >
+            Je suis partant(e)
+          </LienBtn>
+          <p className="small muted">
+            {annonce.tel
+              ? 'Un tap : WhatsApp s’ouvre sur un message déjà écrit pour le cabinet. Aucune inscription.'
+              : 'Un tap : WhatsApp s’ouvre sur un message déjà écrit ; choisissez le cabinet dans vos conversations.'}
+          </p>
+        </>
+      )}
       <p className="tiny muted">
         Annonce créée avec Relève par le cabinet. Vérifiez qui vous écrit avant de transmettre vos
         documents.
       </p>
-      <button
-        type="button"
-        className="linkbtn small"
-        style={{ alignSelf: 'flex-start' }}
-        onClick={() => go({ name: 'landing' })}
-      >
-        Découvrir Relève, le remplacement infirmier simplifié
-      </button>
+      <a className="linkbtn small retour" href={href({ name: 'landing' })}>
+        Découvrir Relève, l’outil qui a créé cette annonce
+      </a>
     </div>
   )
 }
