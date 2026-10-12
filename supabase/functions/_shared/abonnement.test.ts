@@ -1,7 +1,13 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import {
-  type AbonnementStripe, abonnementRetenu, joursEssaiPourCheckout, ligneDepuisAbonnement, ligneProvisoire, STATUTS_ABONNEMENT, STATUTS_EN_COURS,
+  type AbonnementStripe,
+  abonnementRetenu,
+  joursEssaiPourCheckout,
+  ligneDepuisAbonnement,
+  ligneProvisoire,
+  STATUTS_ABONNEMENT,
+  STATUTS_EN_COURS,
 } from './abonnement'
 
 const abonnement = (extra: Partial<AbonnementStripe> = {}): AbonnementStripe => ({
@@ -10,11 +16,19 @@ const abonnement = (extra: Partial<AbonnementStripe> = {}): AbonnementStripe => 
   status: 'trialing',
   cancel_at_period_end: false,
   trial_end: 1_790_000_000,
-  items: { data: [{ price: { id: 'price_m', recurring: { interval: 'month' } }, current_period_end: 1_791_000_000 }] },
+  items: {
+    data: [
+      {
+        price: { id: 'price_m', recurring: { interval: 'month' } },
+        current_period_end: 1_791_000_000,
+      },
+    ],
+  },
   ...extra,
 })
 
-const migration = (fichier: string) => readFileSync(new URL(`../../migrations/${fichier}`, import.meta.url), 'utf8')
+const migration = (fichier: string) =>
+  readFileSync(new URL(`../../migrations/${fichier}`, import.meta.url), 'utf8')
 
 describe('ligneDepuisAbonnement', () => {
   it('convertit un abonnement en essai', () => {
@@ -54,7 +68,11 @@ describe('ligneDepuisAbonnement', () => {
   })
 
   it('ne devine pas un intervalle inconnu', () => {
-    const ligne = ligneDepuisAbonnement(abonnement({ items: { data: [{ price: { id: 'p', recurring: { interval: 'week' } } }] } }), 'cab-1', new Date(0))
+    const ligne = ligneDepuisAbonnement(
+      abonnement({ items: { data: [{ price: { id: 'p', recurring: { interval: 'week' } } }] } }),
+      'cab-1',
+      new Date(0),
+    )
     expect(ligne.intervalle).toBeNull()
   })
 })
@@ -100,7 +118,9 @@ describe('joursEssaiPourCheckout', () => {
 
 describe('accord avec la base', () => {
   it('les statuts du code sont ceux que la table accepte', () => {
-    const liste = /statut text not null default 'incomplete' check \(statut in \(([^)]*)\)/.exec(migration('20261001000150_abonnements.sql'))?.[1]
+    const liste = /statut text not null default 'incomplete' check \(statut in \(([^)]*)\)/.exec(
+      migration('20261001000150_abonnements.sql'),
+    )?.[1]
     const attendus = [...(liste ?? '').matchAll(/'([a-z_]+)'/g)].map(m => m[1])
     expect([...STATUTS_ABONNEMENT].sort()).toEqual(attendus.sort())
   })

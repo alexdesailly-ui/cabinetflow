@@ -4,7 +4,17 @@
  * mutation. Fonctions pures : testées sans réseau (mapping.test.ts).
  */
 import type { Etat, EtatCloud } from '../store'
-import type { Account, Candidature, Contrat, FicheTournee, Invitation, LigneRetrocession, Mission, Piece, Recommandation } from '../types'
+import type {
+  Account,
+  Candidature,
+  Contrat,
+  FicheTournee,
+  Invitation,
+  LigneRetrocession,
+  Mission,
+  Piece,
+  Recommandation,
+} from '../types'
 
 export type Ligne = Record<string, unknown>
 
@@ -15,8 +25,10 @@ export type Ligne = Record<string, unknown>
 const EXCEPTIONS: Record<string, string> = { transmisCDOILe: 'transmis_cdoi_le' }
 const EXCEPTIONS_INV = Object.fromEntries(Object.entries(EXCEPTIONS).map(([a, b]) => [b, a]))
 
-export const versSnake = (k: string) => EXCEPTIONS[k] ?? k.replace(/[A-Z]/g, c => '_' + c.toLowerCase())
-export const versCamel = (k: string) => EXCEPTIONS_INV[k] ?? k.replace(/_([a-z])/g, (_, c: string) => c.toUpperCase())
+export const versSnake = (k: string) =>
+  EXCEPTIONS[k] ?? k.replace(/[A-Z]/g, c => '_' + c.toLowerCase())
+export const versCamel = (k: string) =>
+  EXCEPTIONS_INV[k] ?? k.replace(/_([a-z])/g, (_, c: string) => c.toUpperCase())
 
 /** Ligne SQL → objet applicatif : clés en camelCase, `null` → absent. */
 export function depuisLigne<T>(l: Ligne): T {
@@ -46,30 +58,121 @@ interface Collection {
  */
 export const COLLECTIONS: Collection[] = [
   {
-    etat: 'missions', table: 'missions', delete: true,
-    insert: ['id', 'cabinetId', 'motif', 'du', 'au', 'joursTravailles', 'dimanchesFeries', 'caJournalier', 'retrocessionPct', 'patientsJour',
-      'kmJour', 'horaires', 'soinsRequis', 'vehiculeFourni', 'logementFourni', 'commentaire', 'statut', 'publieeLe', 'invitesDirects'],
-    update: ['motif', 'du', 'au', 'joursTravailles', 'dimanchesFeries', 'caJournalier', 'retrocessionPct', 'patientsJour', 'kmJour', 'horaires',
-      'soinsRequis', 'vehiculeFourni', 'logementFourni', 'commentaire', 'statut', 'publieeLe', 'remplacantRetenuId', 'invitesDirects'],
+    etat: 'missions',
+    table: 'missions',
+    delete: true,
+    insert: [
+      'id',
+      'cabinetId',
+      'motif',
+      'du',
+      'au',
+      'joursTravailles',
+      'dimanchesFeries',
+      'caJournalier',
+      'retrocessionPct',
+      'patientsJour',
+      'kmJour',
+      'horaires',
+      'soinsRequis',
+      'vehiculeFourni',
+      'logementFourni',
+      'commentaire',
+      'statut',
+      'publieeLe',
+      'invitesDirects',
+    ],
+    update: [
+      'motif',
+      'du',
+      'au',
+      'joursTravailles',
+      'dimanchesFeries',
+      'caJournalier',
+      'retrocessionPct',
+      'patientsJour',
+      'kmJour',
+      'horaires',
+      'soinsRequis',
+      'vehiculeFourni',
+      'logementFourni',
+      'commentaire',
+      'statut',
+      'publieeLe',
+      'remplacantRetenuId',
+      'invitesDirects',
+    ],
   },
-  { etat: 'candidatures', table: 'candidatures', delete: true, insert: ['id', 'missionId', 'remplacantId', 'message'], update: ['message', 'statut'] },
   {
-    etat: 'contrats', table: 'contrats', delete: false,
-    insert: ['id', 'missionId', 'cabinetId', 'remplacantId', 'retrocessionPct', 'echeanceReversement', 'clauseNonConcurrence'],
-    update: ['retrocessionPct', 'echeanceReversement', 'clauseNonConcurrence', 'signatureTitulaire', 'signatureRemplacant', 'transmisCDOILe'],
+    etat: 'candidatures',
+    table: 'candidatures',
+    delete: true,
+    insert: ['id', 'missionId', 'remplacantId', 'message'],
+    update: ['message', 'statut'],
   },
   {
-    etat: 'lignes', table: 'lignes_retrocession', delete: true,
+    etat: 'contrats',
+    table: 'contrats',
+    delete: false,
+    insert: [
+      'id',
+      'missionId',
+      'cabinetId',
+      'remplacantId',
+      'retrocessionPct',
+      'echeanceReversement',
+      'clauseNonConcurrence',
+    ],
+    update: [
+      'retrocessionPct',
+      'echeanceReversement',
+      'clauseNonConcurrence',
+      'signatureTitulaire',
+      'signatureRemplacant',
+      'transmisCDOILe',
+    ],
+  },
+  {
+    etat: 'lignes',
+    table: 'lignes_retrocession',
+    delete: true,
     insert: ['id', 'contratId', 'libelle', 'du', 'au', 'caEncaisse', 'pct', 'echeance', 'payeeLe'],
     update: ['libelle', 'du', 'au', 'caEncaisse', 'pct', 'echeance', 'payeeLe'],
   },
-  { etat: 'recos', table: 'recommandations', delete: true, insert: ['id', 'contratId', 'deId', 'versId', 'note', 'texte'], update: [] },
-  { etat: 'invitations', table: 'invitations', delete: false, insert: ['id', 'parId', 'nom', 'canal'], update: [] },
+  {
+    etat: 'recos',
+    table: 'recommandations',
+    delete: true,
+    insert: ['id', 'contratId', 'deId', 'versId', 'note', 'texte'],
+    update: [],
+  },
+  {
+    etat: 'invitations',
+    table: 'invitations',
+    delete: false,
+    insert: ['id', 'parId', 'nom', 'canal'],
+    update: [],
+  },
 ]
 
 /** Champs du compte modifiables par son titulaire (GRANT update sur public.comptes). */
-export const CHAMPS_COMPTE = ['prenom', 'nom', 'email', 'telephone', 'ville', 'codePostal', 'nomCabinet', 'nbTitulaires', 'patientsTournee',
-  'caJournalierMoyen', 'rayonKm', 'vehicule', 'anneesExperience', 'soinsMaitrises', 'disponibilites']
+export const CHAMPS_COMPTE = [
+  'prenom',
+  'nom',
+  'email',
+  'telephone',
+  'ville',
+  'codePostal',
+  'nomCabinet',
+  'nbTitulaires',
+  'patientsTournee',
+  'caJournalierMoyen',
+  'rayonKm',
+  'vehicule',
+  'anneesExperience',
+  'soinsMaitrises',
+  'disponibilites',
+]
 
 /* ------------------------------------------------------------------ */
 /* Chargement : lignes SQL → état                                      */
@@ -95,8 +198,15 @@ export interface Lignes {
   userId: string
 }
 
-function compteDepuis(base: Ligne, complet: Ligne | undefined, pieces: Piece[] | undefined): Account {
-  const a = depuisLigne<Account & { pieces?: Piece[]; anonymiseLe?: string; departement: string }>({ ...base, ...(complet ?? {}) })
+function compteDepuis(
+  base: Ligne,
+  complet: Ligne | undefined,
+  pieces: Piece[] | undefined,
+): Account {
+  const a = depuisLigne<Account & { pieces?: Piece[]; anonymiseLe?: string; departement: string }>({
+    ...base,
+    ...(complet ?? {}),
+  })
   return {
     ...a,
     email: a.email ?? '',
@@ -113,7 +223,11 @@ export function versEtat(l: Lignes): Etat {
   const piecesPar = new Map<string, Piece[]>()
   for (const p of l.pieces) {
     const liste = piecesPar.get(p.compte_id as string) ?? []
-    const { id: _id, compteId: _c, ...piece } = depuisLigne<Piece & { id: string; compteId: string }>(p)
+    const {
+      id: _id,
+      compteId: _c,
+      ...piece
+    } = depuisLigne<Piece & { id: string; compteId: string }>(p)
     liste.push(piece)
     piecesPar.set(p.compte_id as string, liste)
   }
@@ -125,20 +239,27 @@ export function versEtat(l: Lignes): Etat {
   })
 
   const badges: Etat['badges'] = {}
-  for (const b of l.badges) (badges[b.compte_id as string] ??= []).push({ key: b.key as string, le: b.le as string })
+  for (const b of l.badges)
+    (badges[b.compte_id as string] ??= []).push({ key: b.key as string, le: b.le as string })
 
   // Préférence : le compte cabinet de la personne connectée, sinon son compte remplaçant.
   const mesComptes = l.membres.filter(m => m.user_id === l.userId).map(m => m.compte_id as string)
-  const session = accounts.filter(a => mesComptes.includes(a.id)).sort((a, b) => a.role.localeCompare(b.role))[0]?.id ?? null
+  const session =
+    accounts.filter(a => mesComptes.includes(a.id)).sort((a, b) => a.role.localeCompare(b.role))[0]
+      ?.id ?? null
 
   const abo = l.abonnements.find(s => s.cabinet_id === session)
   const cloud: EtatCloud = {
     email: l.email,
     fichePatientsAutorises: l.parametres?.fichePatientsAutorises === true,
-    abonnement: abo ? {
-      statut: abo.statut as string, intervalle: (abo.intervalle as string) ?? undefined,
-      finPeriode: (abo.current_period_end as string) ?? undefined, annulationFinPeriode: abo.cancel_at_period_end === true,
-    } : undefined,
+    abonnement: abo
+      ? {
+          statut: abo.statut as string,
+          intervalle: (abo.intervalle as string) ?? undefined,
+          finPeriode: (abo.current_period_end as string) ?? undefined,
+          annulationFinPeriode: abo.cancel_at_period_end === true,
+        }
+      : undefined,
     synchronisation: 'ok',
   }
 
@@ -180,17 +301,34 @@ function selection(o: object, champs: string[], seulementDefinis: boolean): Lign
   return out
 }
 
-function differenceCollection(c: Collection, avant: { id: string }[], apres: { id: string }[]): Operation[] {
+function differenceCollection(
+  c: Collection,
+  avant: { id: string }[],
+  apres: { id: string }[],
+): Operation[] {
   const ops: Operation[] = []
   const indexAvant = new Map(avant.map(x => [x.id, x]))
   const idsApres = new Set(apres.map(x => x.id))
   for (const x of apres) {
     const ancien = indexAvant.get(x.id)
-    if (!ancien) { ops.push({ type: 'insert', table: c.table, valeurs: selection(x, c.insert, true) }); continue }
-    const modifies = c.update.filter(k => !egal((ancien as unknown as Ligne)[k], (x as unknown as Ligne)[k]))
-    if (modifies.length) ops.push({ type: 'update', table: c.table, cle: { id: x.id }, valeurs: selection(x, modifies, false) })
+    if (!ancien) {
+      ops.push({ type: 'insert', table: c.table, valeurs: selection(x, c.insert, true) })
+      continue
+    }
+    const modifies = c.update.filter(
+      k => !egal((ancien as unknown as Ligne)[k], (x as unknown as Ligne)[k]),
+    )
+    if (modifies.length)
+      ops.push({
+        type: 'update',
+        table: c.table,
+        cle: { id: x.id },
+        valeurs: selection(x, modifies, false),
+      })
   }
-  if (c.delete) for (const x of avant) if (!idsApres.has(x.id)) ops.push({ type: 'delete', table: c.table, cle: { id: x.id } })
+  if (c.delete)
+    for (const x of avant)
+      if (!idsApres.has(x.id)) ops.push({ type: 'delete', table: c.table, cle: { id: x.id } })
   return ops
 }
 
@@ -206,26 +344,58 @@ export function difference(avant: Etat, apres: Etat): Operation[] {
   const compteAvant = avant.accounts.find(a => a.id === moi)
   const compteApres = apres.accounts.find(a => a.id === moi)
   if (moi && compteAvant && compteApres) {
-    const modifies = CHAMPS_COMPTE.filter(k => !egal((compteAvant as unknown as Ligne)[k], (compteApres as unknown as Ligne)[k]))
-    if (modifies.length) ops.push({ type: 'update', table: 'comptes', cle: { id: moi }, valeurs: selection(compteApres, modifies, false) })
+    const modifies = CHAMPS_COMPTE.filter(
+      k => !egal((compteAvant as unknown as Ligne)[k], (compteApres as unknown as Ligne)[k]),
+    )
+    if (modifies.length)
+      ops.push({
+        type: 'update',
+        table: 'comptes',
+        cle: { id: moi },
+        valeurs: selection(compteApres, modifies, false),
+      })
 
     const pAvant = new Map((compteAvant.pieces ?? []).map(p => [p.key, p]))
     const pApres = new Map((compteApres.pieces ?? []).map(p => [p.key, p]))
     for (const [key, p] of pApres) {
       const ancienne = pAvant.get(key)
-      if (!ancienne) ops.push({ type: 'insert', table: 'pieces', valeurs: { compte_id: moi, ...selection(p, ['key', 'reference', 'expireLe', 'fournieLe'], true) } })
-      else if (!egal(ancienne, p)) ops.push({ type: 'update', table: 'pieces', cle: { compte_id: moi, key }, valeurs: selection(p, ['reference', 'expireLe', 'fournieLe'], false) })
+      if (!ancienne)
+        ops.push({
+          type: 'insert',
+          table: 'pieces',
+          valeurs: {
+            compte_id: moi,
+            ...selection(p, ['key', 'reference', 'expireLe', 'fournieLe'], true),
+          },
+        })
+      else if (!egal(ancienne, p))
+        ops.push({
+          type: 'update',
+          table: 'pieces',
+          cle: { compte_id: moi, key },
+          valeurs: selection(p, ['reference', 'expireLe', 'fournieLe'], false),
+        })
     }
-    for (const key of pAvant.keys()) if (!pApres.has(key)) ops.push({ type: 'delete', table: 'pieces', cle: { compte_id: moi, key } })
+    for (const key of pAvant.keys())
+      if (!pApres.has(key))
+        ops.push({ type: 'delete', table: 'pieces', cle: { compte_id: moi, key } })
   }
 
   for (const c of COLLECTIONS) {
-    ops.push(...differenceCollection(c, avant[c.etat] as { id: string }[], apres[c.etat] as { id: string }[]))
+    ops.push(
+      ...differenceCollection(
+        c,
+        avant[c.etat] as { id: string }[],
+        apres[c.etat] as { id: string }[],
+      ),
+    )
   }
 
   if (moi) {
     const deja = new Set((avant.badges[moi] ?? []).map(b => b.key))
-    for (const b of apres.badges[moi] ?? []) if (!deja.has(b.key)) ops.push({ type: 'insert', table: 'badges', valeurs: { compte_id: moi, key: b.key } })
+    for (const b of apres.badges[moi] ?? [])
+      if (!deja.has(b.key))
+        ops.push({ type: 'insert', table: 'badges', valeurs: { compte_id: moi, key: b.key } })
   }
 
   const fichesAvant = new Map(avant.fiches.map(f => [f.missionId, f]))
@@ -233,7 +403,11 @@ export function difference(avant: Etat, apres: Etat): Operation[] {
     const ancienne = fichesAvant.get(f.missionId)
     const { majLe: _a, ...contenu } = f
     if (!ancienne || !egal({ ...ancienne, majLe: '' }, { ...f, majLe: '' })) {
-      ops.push({ type: 'rpc', fonction: 'fiche_enregistrer', args: { mission: f.missionId, contenu } })
+      ops.push({
+        type: 'rpc',
+        fonction: 'fiche_enregistrer',
+        args: { mission: f.missionId, contenu },
+      })
     }
   }
   return ops

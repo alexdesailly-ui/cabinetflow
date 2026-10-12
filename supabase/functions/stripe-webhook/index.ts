@@ -16,7 +16,13 @@ Deno.serve(async req => {
   const secret = env('STRIPE_WEBHOOK_SECRET')
   let evenement: Stripe.Event
   try {
-    evenement = await st.webhooks.constructEventAsync(await req.text(), signature, secret, undefined, fournisseurCrypto)
+    evenement = await st.webhooks.constructEventAsync(
+      await req.text(),
+      signature,
+      secret,
+      undefined,
+      fournisseurCrypto,
+    )
   } catch {
     return new Response('Signature invalide', { status: 400 })
   }

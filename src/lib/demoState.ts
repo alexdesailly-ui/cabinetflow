@@ -28,9 +28,16 @@ export interface EtatDemo {
 }
 
 const CLE = 'releve:demo-blocs'
-const vide = (): EtatDemo => ({ offre: 'gratuite', notes: {}, vus: [], commentaire: '', interetEncaissement: false })
+const vide = (): EtatDemo => ({
+  offre: 'gratuite',
+  notes: {},
+  vus: [],
+  commentaire: '',
+  interetEncaissement: false,
+})
 
-const estBloc = (x: unknown): x is BlocId => typeof x === 'number' && (BLOCS_IDS as number[]).includes(x)
+const estBloc = (x: unknown): x is BlocId =>
+  typeof x === 'number' && (BLOCS_IDS as number[]).includes(x)
 const estNote = (x: unknown): x is Note => x === 'top' || x === 'bof' || x === 'non'
 
 /** Un contenu stocké est relu avec méfiance : on ne garde que ce qui a la bonne forme. */
@@ -40,11 +47,13 @@ export function validerEtat(brut: unknown): EtatDemo {
   const o = brut as Record<string, unknown>
   if (o.offre === 'essai') e.offre = 'essai'
   if (typeof o.notes === 'object' && o.notes !== null) {
-    for (const [k, v] of Object.entries(o.notes)) if (estBloc(Number(k)) && estNote(v)) e.notes[Number(k) as BlocId] = v
+    for (const [k, v] of Object.entries(o.notes))
+      if (estBloc(Number(k)) && estNote(v)) e.notes[Number(k) as BlocId] = v
   }
   if (Array.isArray(o.vus)) e.vus = o.vus.filter(estBloc).filter((b, i, t) => t.indexOf(b) === i)
   if (o.prix === 'cher' || o.prix === 'correct' || o.prix === 'bon') e.prix = o.prix
-  if (o.profil === 'Titulaire' || o.profil === 'Remplaçant' || o.profil === 'Autre') e.profil = o.profil
+  if (o.profil === 'Titulaire' || o.profil === 'Remplaçant' || o.profil === 'Autre')
+    e.profil = o.profil
   if (typeof o.commentaire === 'string') e.commentaire = o.commentaire.slice(0, 500)
   e.interetEncaissement = o.interetEncaissement === true
   return e
@@ -69,7 +78,11 @@ export function lireEtat(): EtatDemo {
 
 function ecrire(suivant: EtatDemo) {
   etat = suivant
-  try { localStorage.setItem(CLE, JSON.stringify(suivant)) } catch { /* mode privé : l'état reste en mémoire */ }
+  try {
+    localStorage.setItem(CLE, JSON.stringify(suivant))
+  } catch {
+    /* mode privé : l'état reste en mémoire */
+  }
   abonnes.forEach(f => f())
 }
 
@@ -79,15 +92,23 @@ export function rechargerEtat() {
   abonnes.forEach(f => f())
 }
 
-const abonner = (f: () => void) => { abonnes.add(f); return () => { abonnes.delete(f) } }
+const abonner = (f: () => void) => {
+  abonnes.add(f)
+  return () => {
+    abonnes.delete(f)
+  }
+}
 export const useDemo = (): EtatDemo => useSyncExternalStore(abonner, lireEtat, lireEtat)
 
 export const choisirOffre = (offre: Offre) => ecrire({ ...lireEtat(), offre })
-export const noter = (bloc: BlocId, note: Note) => ecrire({ ...lireEtat(), notes: { ...lireEtat().notes, [bloc]: note } })
+export const noter = (bloc: BlocId, note: Note) =>
+  ecrire({ ...lireEtat(), notes: { ...lireEtat().notes, [bloc]: note } })
 export const definirPrix = (prix: Prix) => ecrire({ ...lireEtat(), prix })
 export const definirProfil = (profil: Profil) => ecrire({ ...lireEtat(), profil })
-export const definirCommentaire = (commentaire: string) => ecrire({ ...lireEtat(), commentaire: commentaire.slice(0, 500) })
-export const basculerInteretEncaissement = () => ecrire({ ...lireEtat(), interetEncaissement: !lireEtat().interetEncaissement })
+export const definirCommentaire = (commentaire: string) =>
+  ecrire({ ...lireEtat(), commentaire: commentaire.slice(0, 500) })
+export const basculerInteretEncaissement = () =>
+  ecrire({ ...lireEtat(), interetEncaissement: !lireEtat().interetEncaissement })
 export function marquerBlocVu(bloc: BlocId) {
   const e = lireEtat()
   if (!e.vus.includes(bloc)) ecrire({ ...e, vus: [...e.vus, bloc] })

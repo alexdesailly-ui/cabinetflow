@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import type { AbonnementStripe, LigneAbonnement } from './abonnement'
-import { EVENEMENTS_GERES, type EvenementStripe, type PortsWebhook, referencesDepuisEvenement, traiterEvenement } from './webhook'
+import {
+  EVENEMENTS_GERES,
+  type EvenementStripe,
+  type PortsWebhook,
+  referencesDepuisEvenement,
+  traiterEvenement,
+} from './webhook'
 
 const abonnement = (extra: Partial<AbonnementStripe> = {}): AbonnementStripe => ({
   id: 'sub_1',
@@ -8,12 +14,23 @@ const abonnement = (extra: Partial<AbonnementStripe> = {}): AbonnementStripe => 
   status: 'active',
   cancel_at_period_end: false,
   trial_end: null,
-  items: { data: [{ price: { id: 'price_m', recurring: { interval: 'month' } }, current_period_end: 1_791_000_000 }] },
+  items: {
+    data: [
+      {
+        price: { id: 'price_m', recurring: { interval: 'month' } },
+        current_period_end: 1_791_000_000,
+      },
+    ],
+  },
   metadata: { cabinet_id: 'cab-1' },
   ...extra,
 })
 
-const evenement = (type: string, objet: object, id = 'evt_1'): EvenementStripe => ({ id, type, data: { object: objet } })
+const evenement = (type: string, objet: object, id = 'evt_1'): EvenementStripe => ({
+  id,
+  type,
+  data: { object: objet },
+})
 const miseAJour = evenement('customer.subscription.updated', { id: 'sub_1' })
 
 /** Ports en mémoire : la base et Stripe sont remplacés par des tableaux. */
@@ -46,7 +63,12 @@ function ports(surcharges: Partial<PortsWebhook> = {}) {
 
 describe('referencesDepuisEvenement', () => {
   it('session de paiement : abonnement et cabinet viennent de la session', () => {
-    const refs = referencesDepuisEvenement(evenement('checkout.session.completed', { subscription: 'sub_9', client_reference_id: 'cab-9' }))
+    const refs = referencesDepuisEvenement(
+      evenement('checkout.session.completed', {
+        subscription: 'sub_9',
+        client_reference_id: 'cab-9',
+      }),
+    )
     expect(refs).toEqual({ abonnementId: 'sub_9', cabinetId: 'cab-9' })
   })
 
@@ -55,16 +77,27 @@ describe('referencesDepuisEvenement', () => {
   })
 
   it('facture : abonnement à la racine (ancienne API) ou sous « parent » (API récente)', () => {
-    expect(referencesDepuisEvenement(evenement('invoice.paid', { subscription: 'sub_2' })).abonnementId).toBe('sub_2')
-    expect(referencesDepuisEvenement(evenement('invoice.paid', { parent: { subscription_details: { subscription: 'sub_3' } } })).abonnementId).toBe('sub_3')
+    expect(
+      referencesDepuisEvenement(evenement('invoice.paid', { subscription: 'sub_2' })).abonnementId,
+    ).toBe('sub_2')
+    expect(
+      referencesDepuisEvenement(
+        evenement('invoice.paid', { parent: { subscription_details: { subscription: 'sub_3' } } }),
+      ).abonnementId,
+    ).toBe('sub_3')
   })
 
   it('accepte une référence développée en objet', () => {
-    expect(referencesDepuisEvenement(evenement('invoice.paid', { subscription: { id: 'sub_4' } })).abonnementId).toBe('sub_4')
+    expect(
+      referencesDepuisEvenement(evenement('invoice.paid', { subscription: { id: 'sub_4' } }))
+        .abonnementId,
+    ).toBe('sub_4')
   })
 
   it('facture sans abonnement : rien', () => {
-    expect(referencesDepuisEvenement(evenement('invoice.paid', { subscription: null }))).toEqual({ abonnementId: undefined })
+    expect(referencesDepuisEvenement(evenement('invoice.paid', { subscription: null }))).toEqual({
+      abonnementId: undefined,
+    })
   })
 })
 
@@ -73,7 +106,12 @@ describe('traiterEvenement', () => {
     const { p, ecritures, traites } = ports()
     expect(await traiterEvenement(miseAJour, p)).toBe('enregistre')
     expect(ecritures).toHaveLength(1)
-    expect(ecritures[0]).toMatchObject({ cabinet_id: 'cab-1', stripe_subscription_id: 'sub_1', statut: 'active', maj_le: '2026-10-12T10:00:00.000Z' })
+    expect(ecritures[0]).toMatchObject({
+      cabinet_id: 'cab-1',
+      stripe_subscription_id: 'sub_1',
+      statut: 'active',
+      maj_le: '2026-10-12T10:00:00.000Z',
+    })
     expect(traites.has('evt_1')).toBe(true)
   })
 
@@ -110,13 +148,21 @@ describe('traiterEvenement', () => {
 
   it('une facture sans abonnement est acquittée sans effet', async () => {
     const { p, ecritures } = ports()
-    expect(await traiterEvenement(evenement('invoice.paid', { subscription: null }), p)).toBe('sans-abonnement')
+    expect(await traiterEvenement(evenement('invoice.paid', { subscription: null }), p)).toBe(
+      'sans-abonnement',
+    )
     expect(ecritures).toEqual([])
   })
 
   it('le cabinet de la session de paiement prime sur les métadonnées', async () => {
     const { p, ecritures } = ports()
-    await traiterEvenement(evenement('checkout.session.completed', { subscription: 'sub_1', client_reference_id: 'cab-session' }), p)
+    await traiterEvenement(
+      evenement('checkout.session.completed', {
+        subscription: 'sub_1',
+        client_reference_id: 'cab-session',
+      }),
+      p,
+    )
     expect(ecritures[0]?.cabinet_id).toBe('cab-session')
   })
 
@@ -130,7 +176,9 @@ describe('traiterEvenement', () => {
   })
 
   it('laisse de côté un abonnement qui n’est pas de l’application, sans le marquer', async () => {
-    const { p, ecritures, traites } = ports({ lireAbonnement: async () => abonnement({ metadata: undefined }) })
+    const { p, ecritures, traites } = ports({
+      lireAbonnement: async () => abonnement({ metadata: undefined }),
+    })
     expect(await traiterEvenement(miseAJour, p)).toBe('hors-application')
     expect(ecritures).toEqual([])
     expect(traites.size).toBe(0)

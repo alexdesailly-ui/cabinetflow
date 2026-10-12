@@ -3,7 +3,12 @@
  * Les accès à Stripe et à la base sont injectés (PortsWebhook) : chaque cas se teste sans réseau
  * (webhook.test.ts), et l'Edge Function se réduit à du câblage.
  */
-import { type AbonnementStripe, identifiantClient, type LigneAbonnement, ligneDepuisAbonnement } from './abonnement.ts'
+import {
+  type AbonnementStripe,
+  identifiantClient,
+  type LigneAbonnement,
+  ligneDepuisAbonnement,
+} from './abonnement.ts'
 
 /** Événements traités ; les autres sont acquittés sans effet. Ce sont ceux à cocher dans Stripe. */
 export const EVENEMENTS_GERES = [
@@ -59,13 +64,20 @@ const identifiant = (valeur: unknown): string | undefined => {
 export function referencesDepuisEvenement(evenement: EvenementStripe): References {
   const objet = evenement.data.object as Record<string, unknown>
   if (evenement.type === 'checkout.session.completed') {
-    return { abonnementId: identifiant(objet.subscription), cabinetId: identifiant(objet.client_reference_id) }
+    return {
+      abonnementId: identifiant(objet.subscription),
+      cabinetId: identifiant(objet.client_reference_id),
+    }
   }
-  if (evenement.type.startsWith('customer.subscription.')) return { abonnementId: identifiant(objet.id) }
+  if (evenement.type.startsWith('customer.subscription.'))
+    return { abonnementId: identifiant(objet.id) }
   if (evenement.type.startsWith('invoice.')) {
     // Selon la version d'API du point de terminaison, l'abonnement est à la racine ou sous « parent ».
     const parent = objet.parent as { subscription_details?: { subscription?: unknown } } | undefined
-    return { abonnementId: identifiant(objet.subscription) ?? identifiant(parent?.subscription_details?.subscription) }
+    return {
+      abonnementId:
+        identifiant(objet.subscription) ?? identifiant(parent?.subscription_details?.subscription),
+    }
   }
   return {}
 }
@@ -75,7 +87,10 @@ export function referencesDepuisEvenement(evenement: EvenementStripe): Reference
  * d'arrivée n'est pas garanti, et la lecture donne l'état d'aujourd'hui. Une erreur est
  * relancée : l'événement n'est alors pas marqué et Stripe le renverra.
  */
-export async function traiterEvenement(evenement: EvenementStripe, ports: PortsWebhook): Promise<Issue> {
+export async function traiterEvenement(
+  evenement: EvenementStripe,
+  ports: PortsWebhook,
+): Promise<Issue> {
   if (!(EVENEMENTS_GERES as readonly string[]).includes(evenement.type)) return 'ignore'
   if (await ports.dejaTraite(evenement.id)) return 'deja-traite'
 
@@ -85,7 +100,9 @@ export async function traiterEvenement(evenement: EvenementStripe, ports: PortsW
   const abonnement = await ports.lireAbonnement(references.abonnementId)
   const luLe = ports.maintenant()
   const cabinetId =
-    references.cabinetId ?? abonnement.metadata?.cabinet_id ?? (await ports.cabinetDuClient(identifiantClient(abonnement)))
+    references.cabinetId ??
+    abonnement.metadata?.cabinet_id ??
+    (await ports.cabinetDuClient(identifiantClient(abonnement)))
   // Un abonnement sans cabinet connu n'est pas le nôtre (autre produit sur le même compte Stripe).
   if (!cabinetId) return 'hors-application'
 

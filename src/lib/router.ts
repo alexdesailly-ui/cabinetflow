@@ -31,37 +31,63 @@ function parse(): Route {
   const h = location.hash.replace(/^#\/?/, '')
   const [a, b, c] = h.split('/')
   switch (a) {
-    case '': return { name: 'landing' }
-    case 'demo': return { name: 'demo' }
-    case 'annonce': return { name: 'annonce', code: b ?? '' }
-    case 'invite': return { name: 'invite', code: b ?? '', nom: c ? decodeURIComponent(c) : undefined }
-    case 'onboarding': return { name: 'onboarding', role: (b === 'remplacant' ? 'remplacant' : 'cabinet'), parrain: c }
-    case 'home': return { name: 'home' }
-    case 'missions': return { name: 'missions' }
-    case 'mission': return b === 'nouveau' ? { name: 'mission-new' } : { name: 'mission', id: b, onglet: c }
-    case 'vivier': return { name: 'vivier' }
-    case 'remplacant': return { name: 'remplacant', id: b }
-    case 'dossier': return { name: 'dossier' }
-    case 'parrainage': return { name: 'parrainage' }
-    case 'compte': return { name: 'compte' }
-    case 'connexion': return { name: 'connexion', email: b ? decodeURIComponent(b) : undefined }
-    case 'legal': return { name: 'legal', page: b === 'confidentialite' || b === 'cgu' ? b : 'mentions' }
-    default: return { name: 'landing' }
+    case '':
+      return { name: 'landing' }
+    case 'demo':
+      return { name: 'demo' }
+    case 'annonce':
+      return { name: 'annonce', code: b ?? '' }
+    case 'invite':
+      return { name: 'invite', code: b ?? '', nom: c ? decodeURIComponent(c) : undefined }
+    case 'onboarding':
+      return { name: 'onboarding', role: b === 'remplacant' ? 'remplacant' : 'cabinet', parrain: c }
+    case 'home':
+      return { name: 'home' }
+    case 'missions':
+      return { name: 'missions' }
+    case 'mission':
+      return b === 'nouveau' ? { name: 'mission-new' } : { name: 'mission', id: b, onglet: c }
+    case 'vivier':
+      return { name: 'vivier' }
+    case 'remplacant':
+      return { name: 'remplacant', id: b }
+    case 'dossier':
+      return { name: 'dossier' }
+    case 'parrainage':
+      return { name: 'parrainage' }
+    case 'compte':
+      return { name: 'compte' }
+    case 'connexion':
+      return { name: 'connexion', email: b ? decodeURIComponent(b) : undefined }
+    case 'legal':
+      return { name: 'legal', page: b === 'confidentialite' || b === 'cgu' ? b : 'mentions' }
+    default:
+      return { name: 'landing' }
   }
 }
 
 export function href(r: Route): string {
   switch (r.name) {
-    case 'landing': return '#/'
-    case 'invite': return `#/invite/${r.code}${r.nom ? '/' + encodeURIComponent(r.nom) : ''}`
-    case 'annonce': return `#/annonce/${r.code}`
-    case 'onboarding': return `#/onboarding/${r.role}${r.parrain ? '/' + r.parrain : ''}`
-    case 'mission-new': return '#/mission/nouveau'
-    case 'mission': return `#/mission/${r.id}${r.onglet ? '/' + r.onglet : ''}`
-    case 'remplacant': return `#/remplacant/${r.id}`
-    case 'connexion': return `#/connexion${r.email ? '/' + encodeURIComponent(r.email) : ''}`
-    case 'legal': return `#/legal/${r.page}`
-    default: return `#/${r.name}`
+    case 'landing':
+      return '#/'
+    case 'invite':
+      return `#/invite/${r.code}${r.nom ? '/' + encodeURIComponent(r.nom) : ''}`
+    case 'annonce':
+      return `#/annonce/${r.code}`
+    case 'onboarding':
+      return `#/onboarding/${r.role}${r.parrain ? '/' + r.parrain : ''}`
+    case 'mission-new':
+      return '#/mission/nouveau'
+    case 'mission':
+      return `#/mission/${r.id}${r.onglet ? '/' + r.onglet : ''}`
+    case 'remplacant':
+      return `#/remplacant/${r.id}`
+    case 'connexion':
+      return `#/connexion${r.email ? '/' + encodeURIComponent(r.email) : ''}`
+    case 'legal':
+      return `#/legal/${r.page}`
+    default:
+      return `#/${r.name}`
   }
 }
 

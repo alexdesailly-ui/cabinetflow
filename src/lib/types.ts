@@ -6,14 +6,7 @@
 export type Role = 'cabinet' | 'remplacant'
 
 /** Pièces du dossier de confiance d'un remplaçant. */
-export type PieceKey =
-  | 'diplome'
-  | 'ordre'
-  | 'autorisation'
-  | 'rcp'
-  | 'urssaf'
-  | 'cps'
-  | 'rib'
+export type PieceKey = 'diplome' | 'ordre' | 'autorisation' | 'rcp' | 'urssaf' | 'cps' | 'rib'
 
 export interface Piece {
   key: PieceKey
@@ -69,11 +62,7 @@ export interface Account {
 }
 
 export type MotifRemplacement =
-  | 'Congés'
-  | 'Maladie'
-  | 'Formation'
-  | 'Maternité / paternité'
-  | 'Renfort d’activité'
+  'Congés' | 'Maladie' | 'Formation' | 'Maternité / paternité' | 'Renfort d’activité'
 
 export type StatutMission = 'brouillon' | 'publiee' | 'pourvue' | 'terminee'
 

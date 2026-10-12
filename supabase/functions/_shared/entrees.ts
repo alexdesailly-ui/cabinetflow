@@ -40,9 +40,15 @@ export function avecParametre(url: string, nom: string, valeur: string): string 
   return adresse.toString()
 }
 
-export function prixPour(intervalle: Intervalle, prix: { mensuel?: string; annuel?: string }): string {
+export function prixPour(
+  intervalle: Intervalle,
+  prix: { mensuel?: string; annuel?: string },
+): string {
   const retenu = intervalle === 'year' ? prix.annuel : prix.mensuel
-  if (!retenu) throw new Error(`Prix Stripe manquant pour « ${intervalle} » (STRIPE_PRICE_${intervalle === 'year' ? 'ANNUEL' : 'MENSUEL'})`)
+  if (!retenu)
+    throw new Error(
+      `Prix Stripe manquant pour « ${intervalle} » (STRIPE_PRICE_${intervalle === 'year' ? 'ANNUEL' : 'MENSUEL'})`,
+    )
   return retenu
 }
 

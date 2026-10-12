@@ -1,7 +1,13 @@
 import { useSyncExternalStore } from 'react'
 import type {
-  Account, Candidature, Contrat, FicheTournee, Invitation, LigneRetrocession,
-  Mission, Recommandation,
+  Account,
+  Candidature,
+  Contrat,
+  FicheTournee,
+  Invitation,
+  LigneRetrocession,
+  Mission,
+  Recommandation,
 } from './types'
 
 /**
@@ -34,7 +40,12 @@ export interface EtatCloud {
   email?: string
   /** Scénario A/B (docs/securite-et-donnees.md) : la liste de patients est-elle autorisée côté serveur ? */
   fichePatientsAutorises: boolean
-  abonnement?: { statut: string; intervalle?: string; finPeriode?: string; annulationFinPeriode: boolean }
+  abonnement?: {
+    statut: string
+    intervalle?: string
+    finPeriode?: string
+    annulationFinPeriode: boolean
+  }
   synchronisation: 'ok' | 'en-cours' | 'erreur'
 }
 
@@ -43,8 +54,15 @@ const CLE = 'releve:v1'
 const vide: Etat = {
   version: 1,
   session: null,
-  accounts: [], missions: [], candidatures: [], contrats: [], lignes: [],
-  recos: [], fiches: [], invitations: [], badges: {},
+  accounts: [],
+  missions: [],
+  candidatures: [],
+  contrats: [],
+  lignes: [],
+  recos: [],
+  fiches: [],
+  invitations: [],
+  badges: {},
 }
 
 function lire(): Etat {
@@ -75,12 +93,18 @@ let identifiantsUuid = false
 
 function ecrire() {
   if (persister) {
-    try { localStorage.setItem(CLE, JSON.stringify(etat)) } catch { /* mode privé : on continue en mémoire */ }
+    try {
+      localStorage.setItem(CLE, JSON.stringify(etat))
+    } catch {
+      /* mode privé : on continue en mémoire */
+    }
   }
   abonnes.forEach(f => f())
 }
 
-export function getEtat(): Etat { return etat }
+export function getEtat(): Etat {
+  return etat
+}
 
 export function mutate(fn: (e: Etat) => Etat | void) {
   const avant = etat
@@ -115,7 +139,9 @@ export function passerEnDemo() {
   ecrire()
 }
 
-export function enModeCloud(): boolean { return !persister }
+export function enModeCloud(): boolean {
+  return !persister
+}
 
 export function reinitialiser() {
   etat = { ...vide }
@@ -124,7 +150,10 @@ export function reinitialiser() {
 
 export function useStore(): Etat {
   return useSyncExternalStore(
-    cb => { abonnes.add(cb); return () => abonnes.delete(cb) },
+    cb => {
+      abonnes.add(cb)
+      return () => abonnes.delete(cb)
+    },
     () => etat,
   )
 }
@@ -135,7 +164,9 @@ export function id(prefixe = ''): string {
   return prefixe + Math.random().toString(36).slice(2, 8) + Date.now().toString(36).slice(-3)
 }
 
-export function maintenant(): string { return new Date().toISOString() }
+export function maintenant(): string {
+  return new Date().toISOString()
+}
 
 /* Sélecteurs ------------------------------------------------------- */
 
@@ -175,5 +206,16 @@ export function contratDeMission(e: Etat, missionId: string): Contrat | undefine
 }
 
 export function etatVide(): Etat {
-  return { ...vide, accounts: [], missions: [], candidatures: [], contrats: [], lignes: [], recos: [], fiches: [], invitations: [], badges: {} }
+  return {
+    ...vide,
+    accounts: [],
+    missions: [],
+    candidatures: [],
+    contrats: [],
+    lignes: [],
+    recos: [],
+    fiches: [],
+    invitations: [],
+    badges: {},
+  }
 }

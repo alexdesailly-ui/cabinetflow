@@ -1,0 +1,11 @@
+dist
+node_modules
+package-lock.json
+tsconfig.tsbuildinfo
+# Contenu rédactionnel, SQL et fichiers produits : mis en forme à la main.
+*.md
+*.sql
+*.html
+public
+legal
+supabase/functions/deno.lock

@@ -15,7 +15,9 @@ let client: SupabaseClient | null = null
 
 export function supabase(): SupabaseClient {
   if (!MODE_CLOUD) throw new Error('Mode cloud non configuré')
-  client ??= createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } })
+  client ??= createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
+  })
   return client
 }
 
@@ -28,10 +30,18 @@ export interface Inscription {
 const CLE_INSCRIPTION = 'releve:inscription'
 
 export function memoriserInscription(i: Inscription) {
-  try { sessionStorage.setItem(CLE_INSCRIPTION, JSON.stringify(i)) } catch { /* navigation privée */ }
+  try {
+    sessionStorage.setItem(CLE_INSCRIPTION, JSON.stringify(i))
+  } catch {
+    /* navigation privée */
+  }
 }
 function inscriptionMemorisee(): Inscription | null {
-  try { return JSON.parse(sessionStorage.getItem(CLE_INSCRIPTION) ?? 'null') } catch { return null }
+  try {
+    return JSON.parse(sessionStorage.getItem(CLE_INSCRIPTION) ?? 'null')
+  } catch {
+    return null
+  }
 }
 
 export async function envoyerCode(email: string): Promise<void> {
@@ -40,10 +50,18 @@ export async function envoyerCode(email: string): Promise<void> {
     email,
     options: { shouldCreateUser: true, data: inscription ? { inscription } : undefined },
   })
-  if (error) throw new Error(/rate|seconds/i.test(error.message) ? 'Patientez une minute avant de redemander un code.' : error.message)
+  if (error)
+    throw new Error(
+      /rate|seconds/i.test(error.message)
+        ? 'Patientez une minute avant de redemander un code.'
+        : error.message,
+    )
 }
 
-export async function verifierCode(email: string, code: string): Promise<'pret' | 'profil-a-completer'> {
+export async function verifierCode(
+  email: string,
+  code: string,
+): Promise<'pret' | 'profil-a-completer'> {
   const { error } = await supabase().auth.verifyOtp({ email, token: code.trim(), type: 'email' })
   if (error) throw new Error('Code invalide ou expiré.')
   return ouvrirSession()
@@ -52,7 +70,9 @@ export async function verifierCode(email: string, code: string): Promise<'pret' 
 /** Crée le compte applicatif si besoin, puis charge les données. */
 export async function ouvrirSession(): Promise<'pret' | 'profil-a-completer'> {
   const sb = supabase()
-  const { data: { user } } = await sb.auth.getUser()
+  const {
+    data: { user },
+  } = await sb.auth.getUser()
   if (!user) throw new Error('Session absente')
   const { data: membres, error } = await sb.from('compte_membres').select('compte_id').limit(1)
   if (error) throw new Error(traduire(error.message))
@@ -66,17 +86,28 @@ export async function ouvrirSession(): Promise<'pret' | 'profil-a-completer'> {
 }
 
 export async function creerCompteCloud(i: Inscription): Promise<void> {
-  const { error } = await supabase().rpc('creer_compte', { donnees: { ...i.donnees, role: i.role }, code_parrain_invitant: i.parrain ?? null })
+  const { error } = await supabase().rpc('creer_compte', {
+    donnees: { ...i.donnees, role: i.role },
+    code_parrain_invitant: i.parrain ?? null,
+  })
   if (error) throw new Error(traduire(error.message))
-  try { sessionStorage.removeItem(CLE_INSCRIPTION) } catch { /* rien */ }
+  try {
+    sessionStorage.removeItem(CLE_INSCRIPTION)
+  } catch {
+    /* rien */
+  }
 }
 
 /** Au chargement de la page : reprend la session existante, écoute les déconnexions. */
 export async function initialiserCloud(): Promise<void> {
   if (!MODE_CLOUD) return
   const sb = supabase()
-  sb.auth.onAuthStateChange(evenement => { if (evenement === 'SIGNED_OUT') passerEnDemo() })
-  const { data: { session } } = await sb.auth.getSession()
+  sb.auth.onAuthStateChange(evenement => {
+    if (evenement === 'SIGNED_OUT') passerEnDemo()
+  })
+  const {
+    data: { session },
+  } = await sb.auth.getSession()
   if (!session) return
   try {
     const r = await ouvrirSession()
@@ -95,8 +126,13 @@ export async function deconnecter() {
 export async function exporterMesDonnees() {
   const { data, error } = await supabase().rpc('rgpd_export')
   if (error) throw new Error(traduire(error.message))
-  const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }))
-  const a = Object.assign(document.createElement('a'), { href: url, download: `releve-mes-donnees-${new Date().toISOString().slice(0, 10)}.json` })
+  const url = URL.createObjectURL(
+    new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }),
+  )
+  const a = Object.assign(document.createElement('a'), {
+    href: url,
+    download: `releve-mes-donnees-${new Date().toISOString().slice(0, 10)}.json`,
+  })
   a.click()
   setTimeout(() => URL.revokeObjectURL(url), 1000)
 }
@@ -112,13 +148,20 @@ async function messageDeFonction(erreur: unknown): Promise<string> {
   try {
     const corps = await (erreur as { context?: Response }).context?.json()
     if (typeof corps?.erreur === 'string') return corps.erreur
-  } catch { /* corps absent ou illisible */ }
+  } catch {
+    /* corps absent ou illisible */
+  }
   return 'Paiement indisponible pour le moment.'
 }
 
 /** Ouvre Stripe Checkout (abonnement) ou le portail client (gestion). */
-export async function ouvrirStripe(action: 'checkout' | 'portal', intervalle: 'month' | 'year' = 'month') {
-  const { data, error } = await supabase().functions.invoke(`stripe-${action}`, { body: { intervalle, retour: location.origin + location.pathname + '#/compte' } })
+export async function ouvrirStripe(
+  action: 'checkout' | 'portal',
+  intervalle: 'month' | 'year' = 'month',
+) {
+  const { data, error } = await supabase().functions.invoke(`stripe-${action}`, {
+    body: { intervalle, retour: location.origin + location.pathname + '#/compte' },
+  })
   if (error) throw new Error(await messageDeFonction(error))
   if (!data?.url) throw new Error('Réponse de paiement invalide.')
   location.href = data.url as string
@@ -136,6 +179,9 @@ async function terminerPaiement() {
   history.replaceState(null, '', location.pathname + (reste ? `?${reste}` : '') + location.hash)
   const sb = supabase()
   const { error } = await sb.functions.invoke('stripe-sync')
-  if (error) throw new Error('Votre paiement est enregistré, mais l’abonnement met du temps à s’afficher : rechargez la page dans un instant.')
+  if (error)
+    throw new Error(
+      'Votre paiement est enregistré, mais l’abonnement met du temps à s’afficher : rechargez la page dans un instant.',
+    )
   await recharger(sb)
 }

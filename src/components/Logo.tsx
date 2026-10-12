@@ -5,7 +5,13 @@
 export function Mark({ size = 28, radius }: { size?: number; radius?: number }) {
   const r = radius ?? Math.round(size * 0.24)
   return (
-    <svg width={size} height={size} viewBox="0 0 64 64" aria-hidden="true" style={{ flexShrink: 0, display: 'block' }}>
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 64 64"
+      aria-hidden="true"
+      style={{ flexShrink: 0, display: 'block' }}
+    >
       <rect width="64" height="64" rx={(r / size) * 64} fill="var(--accent)" />
       <rect x="13" y="22" width="26" height="9" rx="4.5" fill="#fff" />
       <rect x="25" y="34" width="26" height="9" rx="4.5" fill="#fff" fillOpacity=".92" />
@@ -15,7 +21,18 @@ export function Mark({ size = 28, radius }: { size?: number; radius?: number }) 
 
 export function Logo({ size = 26, label = true }: { size?: number; label?: boolean }) {
   return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: Math.round(size * 0.32), color: 'var(--text)', fontWeight: 700, fontSize: size * 0.72, letterSpacing: '-.02em', lineHeight: 1 }}>
+    <span
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: Math.round(size * 0.32),
+        color: 'var(--text)',
+        fontWeight: 700,
+        fontSize: size * 0.72,
+        letterSpacing: '-.02em',
+        lineHeight: 1,
+      }}
+    >
       <Mark size={size} />
       {label && <span>Relève</span>}
     </span>

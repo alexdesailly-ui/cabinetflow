@@ -9,7 +9,13 @@ const body = html.match(/<body>([\s\S]*?)<\/body>/i)?.[1] ?? ''
 const titre = head.match(/<title>[\s\S]*?<\/title>/i)?.[0] ?? '<title>Relève</title>'
 const styles = [...head.matchAll(/<style[\s\S]*?<\/style>/gi)].map(m => m[0]).join('\n')
 const liens = [...head.matchAll(/<link[^>]*rel="stylesheet"[^>]*>/gi)].map(m => m[0]).join('\n')
-const scripts = [...head.matchAll(/<script[\s\S]*?<\/script>/gi)].map(m => m[0].replace(' type="module" crossorigin', ' type="module"')).join('\n')
+const scripts = [...head.matchAll(/<script[\s\S]*?<\/script>/gi)]
+  .map(m => m[0].replace(' type="module" crossorigin', ' type="module"'))
+  .join('\n')
 
 writeFileSync('dist/artifact.html', `${titre}\n${liens}\n${styles}\n${body}\n${scripts}\n`)
-console.log('dist/artifact.html écrit :', (readFileSync('dist/artifact.html').length / 1024).toFixed(0), 'Ko')
+console.log(
+  'dist/artifact.html écrit :',
+  (readFileSync('dist/artifact.html').length / 1024).toFixed(0),
+  'Ko',
+)

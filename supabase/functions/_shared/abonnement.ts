@@ -4,7 +4,16 @@
  */
 
 /** Les statuts d'abonnement de Stripe, tels que la table public.subscriptions les accepte. */
-export const STATUTS_ABONNEMENT = ['trialing', 'active', 'past_due', 'canceled', 'incomplete', 'incomplete_expired', 'unpaid', 'paused'] as const
+export const STATUTS_ABONNEMENT = [
+  'trialing',
+  'active',
+  'past_due',
+  'canceled',
+  'incomplete',
+  'incomplete_expired',
+  'unpaid',
+  'paused',
+] as const
 export type StatutAbonnement = (typeof STATUTS_ABONNEMENT)[number]
 
 /** Sous-ensemble de l'objet Stripe.Subscription que nous lisons. */
@@ -17,7 +26,12 @@ export interface AbonnementStripe {
   trial_end: number | null
   current_period_end?: number | null
   metadata?: Record<string, string>
-  items: { data: { price: { id: string; recurring?: { interval?: string } | null }; current_period_end?: number | null }[] }
+  items: {
+    data: {
+      price: { id: string; recurring?: { interval?: string } | null }
+      current_period_end?: number | null
+    }[]
+  }
 }
 
 /** Une ligne de public.subscriptions, telle que l'attend la fonction SQL enregistrer_abonnement. */
@@ -34,13 +48,18 @@ export interface LigneAbonnement {
   maj_le: string
 }
 
-const enIso = (secondes?: number | null) => (secondes ? new Date(secondes * 1000).toISOString() : null)
+const enIso = (secondes?: number | null) =>
+  secondes ? new Date(secondes * 1000).toISOString() : null
 
 export const identifiantClient = (sub: Pick<AbonnementStripe, 'customer'>): string =>
   typeof sub.customer === 'string' ? sub.customer : sub.customer.id
 
 /** `luLe` est l'instant où Stripe a répondu : il départage deux écritures simultanées. */
-export function ligneDepuisAbonnement(sub: AbonnementStripe, cabinetId: string, luLe: Date): LigneAbonnement {
+export function ligneDepuisAbonnement(
+  sub: AbonnementStripe,
+  cabinetId: string,
+  luLe: Date,
+): LigneAbonnement {
   const element = sub.items.data[0]
   const intervalle = element?.price.recurring?.interval
   return {
@@ -74,12 +93,24 @@ export function ligneProvisoire(cabinetId: string, clientId: string): LigneAbonn
   }
 }
 
-const ORDRE_STATUTS: StatutAbonnement[] = ['active', 'trialing', 'past_due', 'unpaid', 'paused', 'incomplete', 'canceled', 'incomplete_expired']
+const ORDRE_STATUTS: StatutAbonnement[] = [
+  'active',
+  'trialing',
+  'past_due',
+  'unpaid',
+  'paused',
+  'incomplete',
+  'canceled',
+  'incomplete_expired',
+]
 
 /** Parmi les abonnements d'un client : celui qui compte est le plus avancé, puis le plus récent. */
 export function abonnementRetenu<T extends AbonnementStripe>(abonnements: T[]): T | undefined {
-  return [...abonnements].sort((a, b) =>
-    ORDRE_STATUTS.indexOf(a.status) - ORDRE_STATUTS.indexOf(b.status) || (b.created ?? 0) - (a.created ?? 0))[0]
+  return [...abonnements].sort(
+    (a, b) =>
+      ORDRE_STATUTS.indexOf(a.status) - ORDRE_STATUTS.indexOf(b.status) ||
+      (b.created ?? 0) - (a.created ?? 0),
+  )[0]
 }
 
 /** Stripe ne facture jamais deux fois la période d'essai : on n'envoie que les jours réellement restants. */

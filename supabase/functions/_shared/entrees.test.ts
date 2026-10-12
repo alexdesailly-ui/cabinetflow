@@ -9,7 +9,9 @@ describe('validerCorps', () => {
   })
 
   it('accepte un retour vers l’application, fragment compris', () => {
-    expect(validerCorps({ intervalle: 'year', retour: 'https://releve.app/#/compte' }, APP)).toEqual({
+    expect(
+      validerCorps({ intervalle: 'year', retour: 'https://releve.app/#/compte' }, APP),
+    ).toEqual({
       intervalle: 'year',
       retour: 'https://releve.app/#/compte',
     })
@@ -39,18 +41,26 @@ describe('validerCorps', () => {
   })
 
   it('compare les origines, pas les débuts de texte : APP_URL sans barre finale suffit', () => {
-    expect(validerCorps({ retour: 'https://releve.app/#/compte' }, 'https://releve.app').retour).toBe('https://releve.app/#/compte')
-    expect(() => validerCorps({ retour: 'https://releve.app.pirate.example/' }, 'https://releve.app')).toThrow(ErreurEntree)
+    expect(
+      validerCorps({ retour: 'https://releve.app/#/compte' }, 'https://releve.app').retour,
+    ).toBe('https://releve.app/#/compte')
+    expect(() =>
+      validerCorps({ retour: 'https://releve.app.pirate.example/' }, 'https://releve.app'),
+    ).toThrow(ErreurEntree)
   })
 })
 
 describe('avecParametre', () => {
   it('place la requête avant le fragment, que l’application utilise pour son routage', () => {
-    expect(avecParametre('https://releve.app/#/compte', 'paiement', 'ok')).toBe('https://releve.app/?paiement=ok#/compte')
+    expect(avecParametre('https://releve.app/#/compte', 'paiement', 'ok')).toBe(
+      'https://releve.app/?paiement=ok#/compte',
+    )
   })
 
   it('conserve les paramètres existants et remplace le même nom', () => {
-    expect(avecParametre('https://releve.app/?a=1&paiement=non#/compte', 'paiement', 'ok')).toBe('https://releve.app/?a=1&paiement=ok#/compte')
+    expect(avecParametre('https://releve.app/?a=1&paiement=non#/compte', 'paiement', 'ok')).toBe(
+      'https://releve.app/?a=1&paiement=ok#/compte',
+    )
   })
 })
 
@@ -64,7 +74,9 @@ describe('prixPour', () => {
 
 describe('enTetesCors', () => {
   it('limite l’accès à l’origine de l’application', () => {
-    expect(enTetesCors('https://releve.app/chemin')['Access-Control-Allow-Origin']).toBe('https://releve.app')
+    expect(enTetesCors('https://releve.app/chemin')['Access-Control-Allow-Origin']).toBe(
+      'https://releve.app',
+    )
   })
 
   it('reste ouvert sans APP_URL, pour l’essai en local', () => {

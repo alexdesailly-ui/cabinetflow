@@ -17,16 +17,35 @@ export function signalerErreur(message: string) {
   window.dispatchEvent(new CustomEvent('releve:erreur', { detail: message }))
 }
 
-async function tout<T>(p: PromiseLike<{ data: T | null; error: { message: string } | null }>): Promise<T> {
+async function tout<T>(
+  p: PromiseLike<{ data: T | null; error: { message: string } | null }>,
+): Promise<T> {
   const { data, error } = await p
   if (error) throw new Error(error.message)
   return (data ?? []) as T
 }
 
 export async function charger(client: Client): Promise<Etat> {
-  const { data: { user } } = await client.auth.getUser()
+  const {
+    data: { user },
+  } = await client.auth.getUser()
   if (!user) throw new Error('Session expirée')
-  const [membres, annuaire, comptes, pieces, missions, candidatures, contrats, lignes, recos, invitations, badges, fiches, abonnements, parametres] = await Promise.all([
+  const [
+    membres,
+    annuaire,
+    comptes,
+    pieces,
+    missions,
+    candidatures,
+    contrats,
+    lignes,
+    recos,
+    invitations,
+    badges,
+    fiches,
+    abonnements,
+    parametres,
+  ] = await Promise.all([
     tout<Ligne[]>(client.from('compte_membres').select('*')),
     tout<Ligne[]>(client.rpc('annuaire')),
     tout<Ligne[]>(client.from('comptes').select('*')),
@@ -42,14 +61,32 @@ export async function charger(client: Client): Promise<Etat> {
     tout<Ligne[]>(client.from('subscriptions').select('*')),
     tout<Ligne>(client.rpc('parametres_publics')),
   ])
-  return versEtat({ membres, annuaire, comptes, pieces, missions, candidatures, contrats, lignes, recos, invitations, badges, fiches, abonnements, parametres, email: user.email, userId: user.id })
+  return versEtat({
+    membres,
+    annuaire,
+    comptes,
+    pieces,
+    missions,
+    candidatures,
+    contrats,
+    lignes,
+    recos,
+    invitations,
+    badges,
+    fiches,
+    abonnements,
+    parametres,
+    email: user.email,
+    userId: user.id,
+  })
 }
 
 export async function appliquer(client: Client, ops: Operation[]): Promise<void> {
   for (const op of ops) {
     let res: { error: { message: string } | null }
     if (op.type === 'insert') res = await client.from(op.table).insert(op.valeurs)
-    else if (op.type === 'update') res = await client.from(op.table).update(op.valeurs).match(op.cle)
+    else if (op.type === 'update')
+      res = await client.from(op.table).update(op.valeurs).match(op.cle)
     else if (op.type === 'delete') res = await client.from(op.table).delete().match(op.cle)
     else res = await client.rpc(op.fonction, op.args)
     if (res.error) throw new Error(traduire(res.error.message))
@@ -63,7 +100,8 @@ export function traduire(message: string): string {
       ? 'Action refusée : votre période d’essai est terminée ou vous n’avez pas les droits sur ce remplacement.'
       : 'Action refusée : vous n’avez pas les droits nécessaires.'
   }
-  if (/Trop de requêtes/i.test(message)) return 'Trop de requêtes : réessayez dans quelques minutes.'
+  if (/Trop de requêtes/i.test(message))
+    return 'Trop de requêtes : réessayez dans quelques minutes.'
   return message
 }
 
@@ -87,7 +125,9 @@ export async function demarrer(client: Client): Promise<void> {
         remplacerEtat({ ...(await charger(client)), session: getEtat().session })
       } catch (e) {
         marquer('erreur')
-        signalerErreur('Connexion perdue : rechargez la page. Votre dernière modification n’a peut-être pas été enregistrée.')
+        signalerErreur(
+          'Connexion perdue : rechargez la page. Votre dernière modification n’a peut-être pas été enregistrée.',
+        )
         console.error(e)
       }
     })

@@ -7,14 +7,21 @@ import type { Account, Contrat, Mission } from './types'
  * indépendance professionnelle, responsabilité, non-concurrence.
  * Modèle de travail à relire — il ne remplace pas un conseil juridique.
  */
-export function texteContrat(c: Contrat, m: Mission, cabinet: Account, remplacant: Account): string {
+export function texteContrat(
+  c: Contrat,
+  m: Mission,
+  cabinet: Account,
+  remplacant: Account,
+): string {
   const rpps = (a: Account) => a.pieces?.find(p => p.key === 'ordre')?.reference ?? '—'
   const moyens = [
     'les locaux et le matériel du cabinet',
     'le logiciel de facturation et de télétransmission',
     m.vehiculeFourni ? 'le véhicule professionnel' : null,
     m.logementFourni ? 'un logement sur place' : null,
-  ].filter(Boolean).join(', ')
+  ]
+    .filter(Boolean)
+    .join(', ')
 
   return `CONTRAT DE REMPLACEMENT D’INFIRMIER EXERÇANT À TITRE LIBÉRAL
 
@@ -51,9 +58,13 @@ Les honoraires des actes réalisés pendant le remplacement sont facturés au no
 Article 7 — Autorisation et transmission
 Le remplaçant déclare être titulaire d’une autorisation de remplacement délivrée par le conseil (inter)départemental de l’Ordre, valable pour toute la durée du présent contrat, et ne pas remplacer plus de deux infirmiers simultanément. Le présent contrat est transmis au conseil départemental de l’Ordre dont relève le remplacé avant le début du remplacement.
 
-Article 8 — Non-concurrence${c.clauseNonConcurrence ? `
-À l’issue d’un remplacement d’une durée totale supérieure à trois mois, le remplaçant s’interdit de s’installer dans un rayon lui permettant d’entrer en concurrence directe avec le remplacé pendant une durée de deux ans, sauf accord écrit de ce dernier.` : `
-Les parties conviennent de ne pas assortir le présent contrat de clause de non-concurrence.`}
+Article 8 — Non-concurrence${
+    c.clauseNonConcurrence
+      ? `
+À l’issue d’un remplacement d’une durée totale supérieure à trois mois, le remplaçant s’interdit de s’installer dans un rayon lui permettant d’entrer en concurrence directe avec le remplacé pendant une durée de deux ans, sauf accord écrit de ce dernier.`
+      : `
+Les parties conviennent de ne pas assortir le présent contrat de clause de non-concurrence.`
+  }
 
 Article 9 — Litiges
 En cas de différend, les parties s’engagent à rechercher une conciliation auprès du conseil départemental de l’Ordre avant toute action.

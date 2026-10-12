@@ -13,23 +13,33 @@ export function env(nom: string): string {
 export function stripe(): Stripe {
   const cle = env('STRIPE_SECRET_KEY')
   if (cle.startsWith('sk_live_') && Deno.env.get('STRIPE_LIVE_AUTORISE') !== 'oui') {
-    throw new Error('Clé Stripe live refusée : poser STRIPE_LIVE_AUTORISE=oui après validation explicite')
+    throw new Error(
+      'Clé Stripe live refusée : poser STRIPE_LIVE_AUTORISE=oui après validation explicite',
+    )
   }
   return new Stripe(cle, { httpClient: Stripe.createFetchHttpClient() })
 }
 
 export function admin(): SupabaseClient {
-  return createClient(env('SUPABASE_URL'), env('SUPABASE_SERVICE_ROLE_KEY'), { auth: { persistSession: false } })
+  return createClient(env('SUPABASE_URL'), env('SUPABASE_SERVICE_ROLE_KEY'), {
+    auth: { persistSession: false },
+  })
 }
 
 export const urlApp = () => Deno.env.get('APP_URL') ?? ''
 
 export function json(corps: unknown, statut = 200): Response {
-  return new Response(JSON.stringify(corps), { status: statut, headers: { ...enTetesCors(urlApp()), 'Content-Type': 'application/json' } })
+  return new Response(JSON.stringify(corps), {
+    status: statut,
+    headers: { ...enTetesCors(urlApp()), 'Content-Type': 'application/json' },
+  })
 }
 
 export class ErreurHttp extends Error {
-  constructor(public statut: number, message: string) {
+  constructor(
+    public statut: number,
+    message: string,
+  ) {
     super(message)
   }
 }
@@ -44,7 +54,10 @@ export interface Appelant {
 export async function cabinetAppelant(req: Request, sb: SupabaseClient): Promise<Appelant> {
   const jeton = req.headers.get('Authorization')?.replace(/^Bearer /, '')
   if (!jeton) throw new ErreurHttp(401, 'Connexion requise')
-  const { data: { user }, error } = await sb.auth.getUser(jeton)
+  const {
+    data: { user },
+    error,
+  } = await sb.auth.getUser(jeton)
   if (error || !user) throw new ErreurHttp(401, 'Session invalide')
   const { data, error: erreurMembre } = await sb
     .from('compte_membres')
@@ -60,9 +73,15 @@ export async function cabinetAppelant(req: Request, sb: SupabaseClient): Promise
 
 const LIMITE_DEPASSEE = 'P0429'
 
-export async function quota(sb: SupabaseClient, cle: string, max: number, secondes: number): Promise<void> {
+export async function quota(
+  sb: SupabaseClient,
+  cle: string,
+  max: number,
+  secondes: number,
+): Promise<void> {
   const { error } = await sb.rpc('verifier_quota', { cle, max, secondes })
-  if (error?.code === LIMITE_DEPASSEE) throw new ErreurHttp(429, 'Trop de requêtes, réessayez plus tard')
+  if (error?.code === LIMITE_DEPASSEE)
+    throw new ErreurHttp(429, 'Trop de requêtes, réessayez plus tard')
   if (error) throw error
 }
 

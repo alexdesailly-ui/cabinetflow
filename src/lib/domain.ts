@@ -1,6 +1,4 @@
-import type {
-  Account, Contrat, LigneRetrocession, Mission, Piece, PieceKey,
-} from './types'
+import type { Account, Contrat, LigneRetrocession, Mission, Piece, PieceKey } from './types'
 
 /* ------------------------------------------------------------------ */
 /* Dates                                                               */
@@ -29,12 +27,15 @@ export function dansNJours(n: number): string {
  * minuit UTC, elle s'affiche la veille à l'ouest de Greenwich (Antilles, Guyane,
  * Polynésie). On la lit donc à midi, heure locale.
  */
-const jourCalendaire = (iso: string): Date => (/^\d{4}-\d{2}-\d{2}$/.test(iso) ? new Date(`${iso}T12:00:00`) : new Date(iso))
+const jourCalendaire = (iso: string): Date =>
+  /^\d{4}-\d{2}-\d{2}$/.test(iso) ? new Date(`${iso}T12:00:00`) : new Date(iso)
 
 export function formatDate(iso?: string): string {
   if (!iso) return '—'
   return jourCalendaire(iso).toLocaleDateString('fr-FR', {
-    day: '2-digit', month: 'short', year: 'numeric',
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
   })
 }
 
@@ -42,10 +43,18 @@ export function formatDate(iso?: string): string {
  * « 25 nov. → 8 déc. 2026 » (ou « du 25 nov. au 8 déc. 2026 » dans une phrase) :
  * l'année n'est écrite qu'une fois quand elle est commune.
  */
-export function formatPeriode(du: string, au: string, forme: 'fleche' | 'phrase' = 'fleche'): string {
+export function formatPeriode(
+  du: string,
+  au: string,
+  forme: 'fleche' | 'phrase' = 'fleche',
+): string {
   const annee = (iso: string) => jourCalendaire(iso).getFullYear()
-  const jourMois = (iso: string) => jourCalendaire(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
-  const [debut, fin] = annee(du) === annee(au) ? [jourMois(du), `${jourMois(au)} ${annee(au)}`] : [formatDate(du), formatDate(au)]
+  const jourMois = (iso: string) =>
+    jourCalendaire(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
+  const [debut, fin] =
+    annee(du) === annee(au)
+      ? [jourMois(du), `${jourMois(au)} ${annee(au)}`]
+      : [formatDate(du), formatDate(au)]
   return forme === 'phrase' ? `du ${debut} au ${fin}` : `${debut} → ${fin}`
 }
 
@@ -112,52 +121,75 @@ export function montantLigne(l: LigneRetrocession): number {
 /* Dossier de confiance                                                */
 /* ------------------------------------------------------------------ */
 
-export const PIECES: Record<PieceKey, {
-  label: string
-  aide: string
-  critique: boolean
-  echeance: boolean
-  champ?: string
-}> = {
+export const PIECES: Record<
+  PieceKey,
+  {
+    label: string
+    aide: string
+    critique: boolean
+    echeance: boolean
+    champ?: string
+  }
+> = {
   diplome: {
     label: 'Diplôme d’État',
     aide: 'Le DE d’infirmier, exigé pour tout remplacement.',
-    critique: true, echeance: false, champ: 'Année d’obtention',
+    critique: true,
+    echeance: false,
+    champ: 'Année d’obtention',
   },
   ordre: {
     label: 'Inscription à l’Ordre',
     aide: 'Numéro RPPS et département d’inscription au tableau.',
-    critique: true, echeance: false, champ: 'N° RPPS',
+    critique: true,
+    echeance: false,
+    champ: 'N° RPPS',
   },
   autorisation: {
     label: 'Autorisation de remplacement',
     aide: 'Délivrée par le conseil (inter)départemental. Personnelle, valable un an, renouvelable.',
-    critique: true, echeance: true, champ: 'N° d’autorisation',
+    critique: true,
+    echeance: true,
+    champ: 'N° d’autorisation',
   },
   rcp: {
     label: 'Responsabilité civile professionnelle',
     aide: 'Le remplaçant reste personnellement responsable des soins qu’il dispense.',
-    critique: true, echeance: true, champ: 'Assureur et n° de contrat',
+    critique: true,
+    echeance: true,
+    champ: 'Assureur et n° de contrat',
   },
   urssaf: {
     label: 'Attestation URSSAF / SIRET',
     aide: 'Justifie l’exercice libéral et la régularité des cotisations.',
-    critique: false, echeance: true, champ: 'N° SIRET',
+    critique: false,
+    echeance: true,
+    champ: 'N° SIRET',
   },
   cps: {
     label: 'Carte CPS',
     aide: 'Nécessaire pour la télétransmission pendant le remplacement.',
-    critique: false, echeance: true, champ: 'N° de carte',
+    critique: false,
+    echeance: true,
+    champ: 'N° de carte',
   },
   rib: {
     label: 'RIB',
     aide: 'Pour le reversement de la rétrocession d’honoraires.',
-    critique: false, echeance: false, champ: 'IBAN (4 derniers caractères)',
+    critique: false,
+    echeance: false,
+    champ: 'IBAN (4 derniers caractères)',
   },
 }
 
 export const ORDRE_PIECES: PieceKey[] = [
-  'autorisation', 'ordre', 'rcp', 'diplome', 'urssaf', 'cps', 'rib',
+  'autorisation',
+  'ordre',
+  'rcp',
+  'diplome',
+  'urssaf',
+  'cps',
+  'rib',
 ]
 
 export type EtatPiece = 'valide' | 'bientot' | 'expiree' | 'manquante'
@@ -197,7 +229,8 @@ export function conformite(a: Account): Conformite {
     if (etat !== 'valide') {
       const p = get(key)
       alertes.push({
-        key, etat,
+        key,
+        etat,
         jours: p?.expireLe ? joursEntre(aujourdhui(), new Date(p.expireLe)) : 0,
       })
     }
@@ -257,7 +290,8 @@ export function controlerAffectation(
     out.push({
       gravite: 'bloquant',
       titre: 'RCP non valide',
-      detail: 'Le remplaçant répond personnellement des soins qu’il dispense : sa RCP doit couvrir toute la période.',
+      detail:
+        'Le remplaçant répond personnellement des soins qu’il dispense : sa RCP doit couvrir toute la période.',
     })
   } else if (rcp?.expireLe && new Date(rcp.expireLe) < new Date(mission.au)) {
     out.push({
@@ -267,14 +301,18 @@ export function controlerAffectation(
     })
   }
 
-  const chevauchements = contratsDuRemplacant.filter(({ mission: m }) =>
-    m.id !== mission.id && new Date(m.du) <= new Date(mission.au) && new Date(m.au) >= new Date(mission.du),
+  const chevauchements = contratsDuRemplacant.filter(
+    ({ mission: m }) =>
+      m.id !== mission.id &&
+      new Date(m.du) <= new Date(mission.au) &&
+      new Date(m.au) >= new Date(mission.du),
   )
   if (chevauchements.length >= 2) {
     out.push({
       gravite: 'bloquant',
       titre: 'Trois remplacements simultanés',
-      detail: 'Un remplaçant ne peut pas remplacer plus de deux infirmiers en même temps, cabinet de groupe compris.',
+      detail:
+        'Un remplaçant ne peut pas remplacer plus de deux infirmiers en même temps, cabinet de groupe compris.',
     })
   } else if (chevauchements.length === 1) {
     out.push({
@@ -306,13 +344,15 @@ export function alerteCDOI(contrat: Contrat, mission: Mission): Controle | null 
     return {
       gravite: 'bloquant',
       titre: 'Contrat non transmis à l’Ordre',
-      detail: 'Le remplacement a commencé sans transmission au conseil départemental. Régularisez sans attendre.',
+      detail:
+        'Le remplacement a commencé sans transmission au conseil départemental. Régularisez sans attendre.',
     }
   }
   return {
     gravite: restant <= 7 ? 'attention' : 'info',
     titre: `À transmettre au conseil départemental sous ${restant} jour${restant > 1 ? 's' : ''}`,
-    detail: 'Le contrat de remplacement se transmet au conseil départemental de l’Ordre avant le début du remplacement.',
+    detail:
+      'Le contrat de remplacement se transmet au conseil départemental de l’Ordre avant le début du remplacement.',
   }
 }
 
@@ -325,10 +365,12 @@ export const MOIS_OFFERTS_PAR_PARRAINAGE = 1
 export const PLAFOND_MOIS_OFFERTS_PAR_AN = 12
 
 export function genererCode(prenom: string, nom: string): string {
-  const base = (prenom.slice(0, 3) + nom.slice(0, 3))
-    .toUpperCase()
-    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^A-Z]/g, '') || 'IDEL'
+  const base =
+    (prenom.slice(0, 3) + nom.slice(0, 3))
+      .toUpperCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^A-Z]/g, '') || 'IDEL'
   const suffixe = Math.random().toString(36).slice(2, 5).toUpperCase()
   return `${base}-${suffixe}`
 }
@@ -368,5 +410,5 @@ export function scoreDepuisCriteres(criteres: Fiabilite['criteres']): number | n
   const evaluables = criteres.filter(c => c.total > 0)
   if (!evaluables.length) return null
   const poids = evaluables.reduce((s, c) => s + c.poids, 0)
-  return Math.round(evaluables.reduce((s, c) => s + (c.ok / c.total) * c.poids, 0) / poids * 100)
+  return Math.round((evaluables.reduce((s, c) => s + (c.ok / c.total) * c.poids, 0) / poids) * 100)
 }

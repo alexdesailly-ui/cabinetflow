@@ -37,7 +37,9 @@ export function nombreDeJours(du: string, au: string): number {
 
 function versBase64Url(texte: string): string {
   let binaire = ''
-  new TextEncoder().encode(texte).forEach(o => { binaire += String.fromCharCode(o) })
+  new TextEncoder().encode(texte).forEach(o => {
+    binaire += String.fromCharCode(o)
+  })
   return btoa(binaire).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
 }
 
@@ -62,14 +64,26 @@ export function decoderAnnonce(code: string): Annonce | null {
     const brut: unknown = JSON.parse(depuisBase64Url(code))
     if (typeof brut !== 'object' || brut === null) return null
     const o = brut as Record<string, unknown>
-    const texte = (k: string, max: number) => (typeof o[k] === 'string' && (o[k] as string).trim().length > 0 && (o[k] as string).length <= max ? (o[k] as string).trim() : null)
+    const texte = (k: string, max: number) =>
+      typeof o[k] === 'string' &&
+      (o[k] as string).trim().length > 0 &&
+      (o[k] as string).length <= max
+        ? (o[k] as string).trim()
+        : null
     const cabinet = texte('c', LIMITES.cabinet)
     const ville = texte('v', LIMITES.ville)
     const motif = texte('m', LIMITES.motif)
     const du = texte('d', 10)
     const au = texte('f', 10)
     if (!cabinet || !ville || !motif || !du || !au) return null
-    if (!FORMAT_DATE.test(du) || !FORMAT_DATE.test(au) || isNaN(new Date(du).getTime()) || isNaN(new Date(au).getTime()) || au < du) return null
+    if (
+      !FORMAT_DATE.test(du) ||
+      !FORMAT_DATE.test(au) ||
+      isNaN(new Date(du).getTime()) ||
+      isNaN(new Date(au).getTime()) ||
+      au < du
+    )
+      return null
     const tel = typeof o.t === 'string' ? nettoyerTelephone(o.t) : undefined
     return { cabinet, ville, du, au, motif, ...(tel ? { tel } : {}) }
   } catch {
