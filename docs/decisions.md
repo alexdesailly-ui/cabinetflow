@@ -26,6 +26,7 @@ Choix structurants, avec l'alternative écartée et la raison. Chacun est réver
 | 20 | Démonstration en **cinq blocs indépendants**, numérotés et notés d'un emoji | Parcours guidé unique ; une douzaine de lots fins | Chaque thème se juge seul et se nomme (« bloc 3 ») ; cinq retours en quelques minutes. Plus de lots auraient dilué l'attention, moins auraient mélangé des fonctions de valeur différente |
 | 21 | Annonce d'absence **partagée par lien WhatsApp, sans serveur** : les dates et le nom du cabinet voyagent dans l'adresse | API WhatsApp Business ; annonce stockée en base | Aucun coût ni donnée stockée pour tester le palier 1. Limite : Relève ne voit pas les réponses, donc aucun décompte |
 | 22 | La démonstration **teste un conditionnement** (annonce gratuite, contrat et finances en Premium) sans l'imposer au code | Brancher tout de suite cette règle dans la base | Les retours arbitrent d'abord ; la règle actuelle (`cabinet_actif`, publication réservée aux abonnés) ne change qu'après validation |
+| 23 | **Supabase conservé** pour la version payante, à deux conditions avant la première donnée réelle : offre Pro et serveur SMTP dédié | Firebase, PocketBase auto-hébergé, Postgres géré avec API maison | Données relationnelles (contrats, rétrocessions) dont les règles d'accès vivent dans la base, avec connexion par code, sauvegardes et fonctions serveur déjà là. Sortie possible : le SQL est du Postgres standard (la CI le fait tourner sur un Postgres nu avec 60 lignes de simulation) et le SDK tient en 500 lignes (`src/lib/cloud`). **Critères d'abandon** proposés : exigence d'hébergement certifié santé, code de connexion livré à moins de 95 % en boîte de réception, coût mensuel de l'infrastructure supérieur à 5 % du chiffre d'affaires récurrent |
 
 ## Questions ouvertes
 
@@ -34,7 +35,7 @@ Choix structurants, avec l'alternative écartée et la raison. Chacun est réver
 | Ordre des paliers de livraison | Voir [Produit](produit.md) ; à arbitrer avec les retours d'utilisateurs |
 | Politique tarifaire | Abonnement unique, forfait saisonnier ou modèle par paliers ([Modèle économique](modele-economique.md)) |
 | Frontière gratuit / Premium | Annonce WhatsApp gratuite seule (hypothèse de la démonstration), avec ou sans limite d'annonces par an, ou essai du tout pendant 14 jours |
-| Plan de la base de données pour les pilotes | Gratuit (pause après 7 jours d'inactivité, pas de sauvegarde) ou payant dès la première donnée réelle |
+| Plan de la base de données pour les pilotes | Recommandé : gratuit tant qu'aucun utilisateur réel n'y est (pause après 7 jours d'inactivité, pas de sauvegarde), puis Pro (environ 25 $ par mois) dès la première donnée réelle |
 | Entité qui facture | Société existante ou à créer |
 | Relecture juridique | Avant le premier client payant (conditions d'utilisation, confidentialité, modèle de contrat) |
 | Mois offerts par parrainage après souscription | Créditer le solde de l'abonné, ou les limiter à la période d'essai |
