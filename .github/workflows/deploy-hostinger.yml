@@ -50,6 +50,8 @@ jobs:
         run: |
           rm -f dist/artifact.html
           test -f dist/index.html && test -f dist/.htaccess && test -f dist/og.png
+          # Page d'attente : jamais en ligne avec un bouton mort.
+          if grep -q FORMULAIRE_A_RENSEIGNER dist/attente/index.html; then echo "::error::public/attente/index.html : lien du Google Form non renseigné"; exit 1; fi
           ls -la dist
       - name: Vérifier le secret
         env:
