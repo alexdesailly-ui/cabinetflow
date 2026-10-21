@@ -66,7 +66,7 @@ jobs:
           allowed_bots: "claude"
           claude_args: |
             --max-turns 150
-            --allowedTools "Read,Write,Edit,Glob,Grep,WebSearch,WebFetch,Bash(npm run:*),Bash(npm test),Bash(npx vitest:*),Bash(bash scripts/db-test.sh),Bash(git status),Bash(git diff:*),Bash(git log:*),Bash(git show:*),Bash(git checkout:*),Bash(git switch:*),Bash(git add:*),Bash(git commit:*),Bash(git push:*),Bash(git fetch:*),Bash(git merge:*),Bash(git rebase:*),Bash(git branch:*),Bash(gh pr list:*),Bash(gh pr view:*),Bash(gh pr create:*),Bash(gh pr edit:*),Bash(gh issue list:*),Bash(gh issue view:*)"
+            --allowedTools "Read,Write,Edit,Glob,Grep,WebSearch,WebFetch,Bash(npm run:*),Bash(npm test),Bash(npx vitest:*),Bash(bash scripts/db-test.sh),Bash(DATABASE_URL=* bash scripts/db-test.sh),Bash(DATABASE_URL=* npm run test:db),Bash(psql:*),Bash(git status),Bash(git diff:*),Bash(git log:*),Bash(git show:*),Bash(git checkout:*),Bash(git switch:*),Bash(git add:*),Bash(git commit:*),Bash(git push:*),Bash(git fetch:*),Bash(git merge:*),Bash(git rebase:*),Bash(git branch:*),Bash(gh pr list:*),Bash(gh pr view:*),Bash(gh pr create:*),Bash(gh pr edit:*),Bash(gh issue list:*),Bash(gh issue view:*)"
           prompt: |
             SPRINT AUTONOME RELÈVE — run du vendredi. Tu travailles seul : aucune question pendant le run.
             Français, ton direct, tableaux, pas d'emoji. CLAUDE.md, .github/regles-revue.md et docs/ priment sur tes habitudes.
@@ -83,12 +83,16 @@ jobs:
                c) les tickets ouverts portant le label « sprint » (`gh issue list --label sprint`), le plus ancien d'abord ;
                d) à défaut, la section « Points d'attention connus » de docs/qualite.md.
                Ne refais jamais ce qui existe déjà dans docs/. Si une étape ne converge pas en ~45 min, note-la « bloqué » et passe.
+               Ambition : un run livre du CODE testé (migration, fonction, test, écran), pas seulement de la documentation.
+               Vise 60 à 90 minutes de travail effectif ; un rapport sans code n'est acceptable que si tout est bloqué, avec la preuve.
 
             3. RÈGLES
                - Réversible seulement : code, tests, migrations versionnées (nouvelles, jamais réécrites), docs, scripts.
                - JAMAIS : merge sur main, déploiement, ressource payante, Stripe en mode live, secret, modification de .github/workflows/.
                - Décision à deux sorties : option la plus simple et réversible, consignée dans docs/decisions.md.
-               - Avant chaque commit : `npm run check` vert ; si tu touches supabase/, `bash scripts/db-test.sh` vert.
+               - Avant chaque commit : `npm run check` vert ; si tu touches supabase/, la base PostgreSQL 16 du job est disponible :
+                 `DATABASE_URL=postgresql://postgres:postgres@localhost:5432/postgres bash scripts/db-test.sh` doit être vert.
+                 Ne déclare jamais la base « absente » sans avoir lancé exactement cette commande.
 
             4. FIN DE RUN
                - Écris AUTONOMIE_RAPPORT.md à la racine : 1) Fait / Non fait / Bloqué (tableau) ; 2) Décisions prises seul,
