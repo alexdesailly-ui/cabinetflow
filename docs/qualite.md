@@ -37,8 +37,8 @@ La revue suit une boucle où l'humain n'intervient qu'aux deux bouts : il pose l
 
 | Étape | Qui | Où |
 |---|---|---|
-| 1. Écrire l'intention et les critères d'acceptation | Alex | Ticket GitHub contenant `@claude`, ou sprint autonome du vendredi |
-| 2. Coder, tester, ouvrir la PR | Agent | `claude.yml` ou sprint autonome |
+| 1. Écrire l'intention et les critères d'acceptation | Alex | Ticket GitHub : `@claude` pour un traitement immédiat, label `sprint` pour le sprint du vendredi |
+| 2. Coder, tester, ouvrir la PR | Agent | `claude.yml`, ou `sprint-autonome.yml` (vendredi 17h48, lançable à la main) |
 | 3-4. Lire le diff et le contexte (code, ticket, règles), lire la CI | Agent de revue | `revue-agent.yml` |
 | 5. Vérifier chaque constat, écarter les faux positifs | Agent de revue | filtre de `.github/regles-revue.md` |
 | 6. Commenter, proposer un correctif en un clic | Agent de revue | commentaires en ligne + synthèse |

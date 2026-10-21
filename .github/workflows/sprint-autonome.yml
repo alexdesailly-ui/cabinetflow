@@ -1,0 +1,112 @@
+# Sprint autonome du vendredi (Riri, Fifi, Loulou) : un agent avance seul sur la branche
+# autonomie/<date> et ouvre ou met à jour la PR avec le jeton de l'application Claude, ce qui
+# déclenche la CI et la revue agentique. Remplace l'exécution hors GitHub, qui n'avait pas
+# l'accès en écriture au dépôt (runs de 80 secondes sans PR depuis le 02/10).
+# Inactif tant que le secret CLAUDE_CODE_OAUTH_TOKEN n'est pas posé (voir docs/qualite.md).
+name: Sprint autonome
+
+on:
+  schedule:
+    # 16:48 UTC = 17:48 à Paris en heure d'hiver (18:48 en heure d'été).
+    - cron: "48 16 * * 5"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: read
+  checks: read
+  actions: read
+  id-token: write
+
+concurrency:
+  group: sprint-autonome
+  cancel-in-progress: false
+
+jobs:
+  sprint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      CLAUDE_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+      GH_TOKEN: ${{ github.token }}
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - name: Secret absent → sprint ignoré
+        if: env.CLAUDE_TOKEN == ''
+        run: echo "::notice::Sprint autonome désactivé (voir docs/qualite.md, section Revue agentique)."
+
+      - uses: actions/checkout@v4
+        if: env.CLAUDE_TOKEN != ''
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        if: env.CLAUDE_TOKEN != ''
+        with:
+          node-version: 22
+          cache: npm
+
+      - if: env.CLAUDE_TOKEN != ''
+        run: npm ci
+
+      - uses: anthropics/claude-code-action@v1
+        id: claude
+        if: env.CLAUDE_TOKEN != ''
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          allowed_bots: "claude"
+          claude_args: |
+            --max-turns 150
+            --allowedTools "Read,Write,Edit,Glob,Grep,WebSearch,WebFetch,Bash(npm run:*),Bash(npm test),Bash(npx vitest:*),Bash(bash scripts/db-test.sh),Bash(git status),Bash(git diff:*),Bash(git log:*),Bash(git show:*),Bash(git checkout:*),Bash(git switch:*),Bash(git add:*),Bash(git commit:*),Bash(git push:*),Bash(git fetch:*),Bash(git merge:*),Bash(git rebase:*),Bash(git branch:*),Bash(gh pr list:*),Bash(gh pr view:*),Bash(gh pr create:*),Bash(gh pr edit:*),Bash(gh issue list:*),Bash(gh issue view:*)"
+          prompt: |
+            SPRINT AUTONOME RELÈVE — run du vendredi. Tu travailles seul : aucune question pendant le run.
+            Français, ton direct, tableaux, pas d'emoji. CLAUDE.md, .github/regles-revue.md et docs/ priment sur tes habitudes.
+
+            1. ÉTAT
+               - `gh pr list --state open` : s'il existe une PR « Sprint autonome Relève » ouverte, lis-la avec
+                 `gh pr view <n> --comments` (réponses d'Alex aux questions, commentaires de l'agent de revue)
+                 et repars de sa branche (`git switch <branche>`). Sinon crée `autonomie/<AAAA-MM-JJ>` depuis main.
+               - Lis AUTONOMIE_RAPPORT.md s'il existe (dernier run) et docs/qualite.md.
+
+            2. QUOI FAIRE, dans cet ordre de priorité — un incrément livrable, pas un chantier ouvert :
+               a) les constats Bloquant et Important de l'agent de revue encore ouverts sur la PR en cours ;
+               b) les demandes d'Alex en commentaire de PR ;
+               c) les tickets ouverts portant le label « sprint » (`gh issue list --label sprint`), le plus ancien d'abord ;
+               d) à défaut, la section « Points d'attention connus » de docs/qualite.md.
+               Ne refais jamais ce qui existe déjà dans docs/. Si une étape ne converge pas en ~45 min, note-la « bloqué » et passe.
+
+            3. RÈGLES
+               - Réversible seulement : code, tests, migrations versionnées (nouvelles, jamais réécrites), docs, scripts.
+               - JAMAIS : merge sur main, déploiement, ressource payante, Stripe en mode live, secret, modification de .github/workflows/.
+               - Décision à deux sorties : option la plus simple et réversible, consignée dans docs/decisions.md.
+               - Avant chaque commit : `npm run check` vert ; si tu touches supabase/, `bash scripts/db-test.sh` vert.
+
+            4. FIN DE RUN
+               - Écris AUTONOMIE_RAPPORT.md à la racine : 1) Fait / Non fait / Bloqué (tableau) ; 2) Décisions prises seul,
+                 avec l'alternative écartée ; 3) Ce qui requiert Alex, en QCM avec une option « Autre », classé par impact ;
+                 4) Les 3 prochaines actions d'Alex, chacune ≤ 1 h ; 5) Ce que tu attaques au prochain run s'il ne répond pas.
+               - Commit(s) propres, puis `git push -u origin HEAD`.
+               - PR : si une PR est déjà ouverte sur cette branche, `gh pr edit <n> --body-file AUTONOMIE_RAPPORT.md` ;
+                 sinon `gh pr create --base main --title "Sprint autonome Relève — <AAAA-MM-JJ>" --body-file AUTONOMIE_RAPPORT.md`.
+                 Ajoute en fin de corps une ligne vide puis « 🤖 Generated with [Claude Code](https://claude.com/claude-code) ».
+
+      - name: Filet de sécurité si l'agent n'a pas ouvert de PR
+        if: env.CLAUDE_TOKEN != '' && always()
+        run: |
+          branche=$(git branch --show-current)
+          case "$branche" in autonomie/*) ;; *) exit 0 ;; esac
+          git ls-remote --exit-code origin "refs/heads/$branche" >/dev/null || { echo "::warning::Branche $branche jamais poussée."; exit 0; }
+          if [ -z "$(gh pr list --head "$branche" --state open --json number --jq '.[0].number // empty')" ]; then
+            gh pr create --base main --head "$branche" --title "Sprint autonome Relève — $(date +%F)" \
+              --body "PR ouverte par le filet de sécurité : relancez la CI en fermant puis rouvrant la PR. Voir AUTONOMIE_RAPPORT.md."
+            echo "::warning::PR ouverte par le filet de sécurité (la CI ne se déclenche pas seule dans ce cas)."
+          fi
