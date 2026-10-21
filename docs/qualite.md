@@ -13,6 +13,7 @@ Chaque changement déclenche l'intégration continue ; rien n'est fusionné sans
 | Fonctions serveur | Vérification des types (Deno) |
 | Secrets | Scan de tout l'historique (gitleaks) |
 | Aperçu de chaque proposition de changement | Déploiement de prévisualisation (inactif tant que les accès ne sont pas configurés) |
+| Revue agentique | Un agent relit chaque PR selon `.github/regles-revue.md`, écarte ses faux positifs, commente et propose des correctifs (inactif tant que le jeton n'est pas posé) |
 
 ## Tests
 
@@ -29,6 +30,30 @@ Chaque changement déclenche l'intégration continue ; rien n'est fusionné sans
 | `05_stripe` | 8 | Abonnement écrit uniquement par le webhook |
 
 Commandes : `npm run check` et `npm run test:db`.
+
+## Revue agentique
+
+La revue suit une boucle où l'humain n'intervient qu'aux deux bouts : il pose l'intention, il juge le résultat.
+
+| Étape | Qui | Où |
+|---|---|---|
+| 1. Écrire l'intention et les critères d'acceptation | Alex | Ticket GitHub : `@claude` pour un traitement immédiat, label `sprint` pour le sprint du vendredi |
+| 2. Coder, tester, ouvrir la PR | Agent | `claude.yml`, ou `sprint-autonome.yml` (vendredi 17h48, lançable à la main) |
+| 3-4. Lire le diff et le contexte (code, ticket, règles), lire la CI | Agent de revue | `revue-agent.yml` |
+| 5. Vérifier chaque constat, écarter les faux positifs | Agent de revue | filtre de `.github/regles-revue.md` |
+| 6. Commenter, proposer un correctif en un clic | Agent de revue | commentaires en ligne + synthèse |
+| 7. Corriger, relancer la revue | Agent, sur `@claude corrige …` | `claude.yml` ; la revue repart seule après le commit |
+| 8-9. Juger l'intention, approuver, fusionner | Alex | GitHub |
+
+Garde-fous : l'agent de revue n'a aucun droit d'écriture sur le code et n'approuve jamais ; l'agent correcteur ne se déclenche que sur un commentaire humain (les bots sont refusés, donc pas de boucle sans fin) ; tours et durée plafonnés.
+
+**Mise en service (une fois, par Alex)** :
+1. Installer l'application GitHub Claude sur le dépôt : https://github.com/apps/claude
+2. Générer un jeton d'abonnement : `claude setup-token` dans un terminal.
+3. Le poser en secret du dépôt sous le nom `CLAUDE_CODE_OAUTH_TOKEN` (Settings → Secrets and variables → Actions).
+4. Recommandé : protéger `main` (Settings → Branches) en exigeant la CI verte et une approbation.
+
+**Faire progresser la revue** : chaque faux positif ou oubli constaté s'ajoute dans `.github/regles-revue.md`, pas dans le workflow.
 
 ## Où lire le code en priorité
 
