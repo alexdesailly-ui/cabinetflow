@@ -27,6 +27,8 @@ Choix structurants, avec l'alternative écartée et la raison. Chacun est réver
 | 21 | Annonce d'absence **partagée par lien WhatsApp, sans serveur** : les dates et le nom du cabinet voyagent dans l'adresse | API WhatsApp Business ; annonce stockée en base | Aucun coût ni donnée stockée pour tester le palier 1. Limite : Relève ne voit pas les réponses, donc aucun décompte |
 | 22 | La démonstration **teste un conditionnement** (annonce gratuite, contrat et finances en Premium) sans l'imposer au code | Brancher tout de suite cette règle dans la base | Les retours arbitrent d'abord ; la règle actuelle (`cabinet_actif`, publication réservée aux abonnés) ne change qu'après validation |
 
+| 23 | `est_systeme()` : **documenter le constat, ne pas modifier la base** tant que `db-test.sh` ne peut pas tourner | Réécrire la garde à l'aveugle | Le risque est fermé par l'absence de droits pour `anon` ; modifier une garde sans test SQL serait plus dangereux que le constat |
+
 ## Questions ouvertes
 
 | Sujet | Options |

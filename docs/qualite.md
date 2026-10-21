@@ -70,7 +70,7 @@ Par niveau de risque :
 |---|---|
 | Synchronisation par différence d'état | Les écritures ne sont pas transactionnelles (retenir un candidat = plusieurs requêtes). Faut-il des fonctions transactionnelles pour « retenir » et « signer » ? |
 | `annuaire()` | Cette fonction expose nom, ville, profil et statut des pièces de tous les comptes à tout utilisateur connecté, l'inscription étant gratuite côté remplaçant. Acceptable pour une place de marché, ou à restreindre au département ? |
-| `est_systeme()` | Repose sur l'absence d'identifiant utilisateur et sur le rôle ; vérifier qu'aucun chemin authentifié ne peut arriver sans identifiant |
+| `est_systeme()` | Audit du 2026-10-21 : la fonction n'est pas `security definer` mais elle est appelée par des gardes qui le sont ; `current_user` y vaut donc le propriétaire (`postgres`), et un appel sans identifiant (clé `anon`) serait traité en système. Sans effet aujourd'hui : `anon` n'a aucun droit de table ni de colonne (testé dans `01_couverture_rls.sql`) et `authenticated` porte toujours un identifiant. Durcissement possible (`session_user` ou `auth.role()` seul) avec test SQL dédié : non fait, PostgreSQL absent de l'environnement du sprint |
 | Chiffrement | Clé symétrique unique dans Vault, sans rotation : suffisant tant qu'aucune donnée de santé n'est hébergée ? |
 | Suppression de compte | Supprime l'utilisateur d'authentification depuis une fonction SQL : à valider sur un projet réel (droits du rôle propriétaire) |
 | Politique de lecture des missions | Les missions publiées sont visibles de tous les cabinets : voulu, c'est une place de marché |
