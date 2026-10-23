@@ -78,6 +78,20 @@ Par niveau de risque :
 | Quotas | Stockés en table : contention possible à forte charge, sans enjeu avant plusieurs centaines de cabinets |
 | Motif d'absence | « Maladie » ou « maternité » du titulaire est visible des candidats : afficher « Absence » serait plus discret |
 
+## Écritures multi-requêtes (analyse du sprint du 2026-10-23)
+
+Inventaire des actions de `src/lib/actions.ts` selon le nombre de requêtes que `difference()` (`src/lib/cloud/mapping.ts`) envoie à Supabase. Les requêtes partent dans l'ordre des collections (missions, candidatures, contrats, lignes, recommandations, invitations), sans transaction ; en cas d'échec au milieu, les suivantes sont abandonnées, le message est affiché et l'état est rechargé depuis le serveur.
+
+| Action | Requêtes | Risque d'état partiel |
+|---|---|---|
+| `retenir` | 1 mission + N candidatures + 1 contrat (N+2) | Oui : mission « pourvue » ou candidatures tranchées sans contrat créé. Seul cas à traiter |
+| `signer` | 1 mise à jour du contrat ; parrainage calculé par le serveur | Non |
+| `enregistrerFiche` | 1 appel `fiche_enregistrer` | Non |
+| `publierMission`, `candidater`, `majContrat`, `ajouterLigne`, `marquerPayee`, `recommander`, `inviter` | 1 | Non |
+| `attribuerBadges` | 1 insertion par badge nouveau | Faible : chaque badge est indépendant |
+
+**Piste, non réalisée** : une fonction SQL `retenir_remplacant(mission, remplacant)` en `security definer`, qui reprend les gardes existantes, remplace les N+2 requêtes par un seul appel `rpc` et est couverte par `03_regles_metier.sql` et `02_isolation_cabinets.sql`. Elle touche la base : à lancer après accord d'Alex. `signer` n'a pas besoin de fonction transactionnelle.
+
 ## Limites connues
 
 - Pas de tests de bout en bout dans un navigateur (parcours inscription → mission → signature).
