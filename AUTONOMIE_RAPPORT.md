@@ -45,3 +45,5 @@
 ## 5. Sans réponse d'Alex au prochain run
 
 Point « `annuaire()` » de `docs/qualite.md` : documenter les champs exposés et chiffrer l'option « restreindre au département », sans modifier la base.
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
