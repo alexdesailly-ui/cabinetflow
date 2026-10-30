@@ -52,3 +52,5 @@ Ce run ne contient que de la documentation : aucun point restant ne pouvait avan
 ## 5. Sans réponse d'Alex au prochain run
 
 Les autres lignes de « Points d'attention connus » ne demandent que de la documentation : chiffrement sans rotation (options et coût d'une rotation) et suppression de compte (procédure de validation sur un projet réel). Aucune modification de la base.
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
