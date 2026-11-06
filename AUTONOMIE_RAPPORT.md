@@ -1,9 +1,11 @@
-# Sprint autonome Relève — 2026-10-30
+# Sprint autonome Relève — 2026-11-06
 
 ## 1. Fait / Non fait / Bloqué
 
 | Élément | État | Détail |
 |---|---|---|
+| Constat Mineur de la revue : motif obsolète dans la décision 23 | Fait | Motif aligné sur la décision d'Alex en attente |
+| Points « Chiffrement » et « Suppression de compte » de `docs/qualite.md` | Fait (documentation) | Audit dans `docs/securite-et-donnees.md` : rotation de clé, comportement réel de la suppression (supprime, anonymise ou quitte), procédure de validation sur projet de test |
 | Constat Mineur de la revue (PR #8) : `docs/qualite.md` invoquait « PostgreSQL absent » pour le report de `est_systeme()` | Fait | Motif remplacé par « en attente de la décision d'Alex » |
 | Commentaires d'Alex sur la PR #8 | Aucun | Trois questions du rapport précédent sans réponse |
 | Tickets « sprint » | Aucun | Liste vide |
@@ -51,6 +53,6 @@ Ce run ne contient que de la documentation : aucun point restant ne pouvait avan
 
 ## 5. Sans réponse d'Alex au prochain run
 
-Les autres lignes de « Points d'attention connus » ne demandent que de la documentation : chiffrement sans rotation (options et coût d'une rotation) et suppression de compte (procédure de validation sur un projet réel). Aucune modification de la base.
+Il ne reste en « Points d'attention connus » que des sujets de décision (motif d'absence, quotas, politique de contenu). Sans réponse, le run se limitera à relire les PR ouvertes et à rapporter l'état ; aucune modification de la base.
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)

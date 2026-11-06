@@ -78,6 +78,22 @@ Ce que l'on perd : la promesse d'une passation structurée patient par patient. 
 
 Un paramètre : `update private.parametres set valeur = 'true' where cle = 'fiche_patients_autorises'`, une fois l'hébergement certifié en place. Les pages légales sont à réécrire en conséquence.
 
+## Audit documentaire : rotation de la clé et suppression de compte
+
+Constat de lecture de `20261001000300_donnees_sensibles_rgpd.sql`, sans modification de la base.
+
+| Sujet | Constat | Recommandation |
+|---|---|---|
+| Rotation de la clé | Une clé unique (secret Vault `releve_cle_donnees`, 32 caractères minimum) chiffre `fiches_tournee.contenu_chiffre` en AES-256. Changer le secret sans rechiffrer les fiches les rend illisibles. | Pas de rotation tant que la liste des patients reste interdite (règle 1). Si elle devient nécessaire : fonction qui déchiffre avec l'ancienne clé et rechiffre avec la nouvelle dans une seule transaction, avec test SQL, après décision d'Alex. |
+| Suppression de compte | `rgpd_supprimer_mon_compte('SUPPRIMER')` traite chaque compte du membre : supprimé s'il n'a aucun contrat, anonymisé s'il en a (le contrat reste une pièce de preuve), simplement quitté s'il reste d'autres titulaires. Elle finit par `delete from auth.users`. | Seul point non vérifié par les tests : le droit du propriétaire de la fonction sur `auth.users` dans Supabase. À valider sur un projet de test. |
+
+Validation de la suppression sur un projet Supabase de test (jamais la production) :
+
+1. Créer un compte remplaçant sans contrat et un compte cabinet avec un contrat signé.
+2. Appeler `rgpd_supprimer_mon_compte('SUPPRIMER')` avec chacun.
+3. Vérifier que la ligne `auth.users` a disparu dans les deux cas, que le compte sans contrat n'existe plus et que celui avec contrat est anonymisé (`anonymise_le` renseigné, `email` nul).
+4. En cas d'erreur de droits, ouvrir un ticket : ne pas élargir les droits du rôle sans revue.
+
 ## Points de vigilance
 
 La liste des points à challenger (annuaire visible de tous les membres, clé de chiffrement unique sans rotation, suppression de compte à valider sur un projet réel, politique de contenu) est dans [Qualité](qualite.md).
