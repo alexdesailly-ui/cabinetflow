@@ -69,14 +69,28 @@ Par niveau de risque :
 | Sujet | Question ouverte |
 |---|---|
 | Synchronisation par différence d'état | Les écritures ne sont pas transactionnelles (retenir un candidat = plusieurs requêtes). Faut-il des fonctions transactionnelles pour « retenir » et « signer » ? |
-| `annuaire()` | Cette fonction expose nom, ville, profil et statut des pièces de tous les comptes à tout utilisateur connecté, l'inscription étant gratuite côté remplaçant. Acceptable pour une place de marché, ou à restreindre au département ? |
-| `est_systeme()` | Repose sur l'absence d'identifiant utilisateur et sur le rôle ; vérifier qu'aucun chemin authentifié ne peut arriver sans identifiant |
-| Chiffrement | Clé symétrique unique dans Vault, sans rotation : suffisant tant qu'aucune donnée de santé n'est hébergée ? |
-| Suppression de compte | Supprime l'utilisateur d'authentification depuis une fonction SQL : à valider sur un projet réel (droits du rôle propriétaire) |
+| `annuaire()` | Audit du 2026-10-30. Expose à tout compte connecté non anonymisé (`anon` refusé, testé) : identifiant, rôle, date de création, prénom, nom, ville, code postal, département, nom du cabinet, rayon, véhicule, années d'expérience, soins maîtrisés, disponibilités, et pour chaque pièce sa clé, sa date d'expiration et sa date de fourniture. Jamais d'email, de téléphone, de code de parrainage ni de référence de pièce (testé dans `02_isolation_cabinets.sql`). L'inscription remplaçant étant gratuite, tout inscrit lit ces champs ; le nom complet et le code postal sont les plus identifiants. Option « restreindre au département » : nouvelle migration filtrant sur le département de l'appelant et ses voisins, avec une table de voisinage des départements ; elle casse le vivier hors département, et `sync.ts` / `mapping.ts` supposent l'annuaire complet (cabinet d'une annonce voisine introuvable = affichage dégradé). Coût : une migration, une table de référence, 3 à 5 assertions SQL, un test de mapping. Variante plus légère : masquer `code_postal` et réduire le nom à l'initiale tant qu'aucune candidature ne lie les deux comptes. Non fait : attend la décision d'Alex (`decisions.md`, « Visibilité de l'annuaire des remplaçants ») |
+| `est_systeme()` | Audit du 2026-10-21 : la fonction n'est pas `security definer` mais elle est appelée par des gardes qui le sont ; `current_user` y vaut donc le propriétaire (`postgres`), et un appel sans identifiant (clé `anon`) serait traité en système. Sans effet aujourd'hui : `anon` n'a aucun droit de table ni de colonne (testé dans `01_couverture_rls.sql`) et `authenticated` porte toujours un identifiant. Durcissement possible (`session_user` ou `auth.role()` seul) avec test SQL dédié : non fait, en attente de la décision d'Alex |
+| Chiffrement | Clé symétrique unique dans Vault, sans rotation : suffisant tant qu'aucune donnée de santé n'est hébergée ? Audit et option de rotation : [Sécurité et données](securite-et-donnees.md) |
+| Suppression de compte | Supprime l'utilisateur d'authentification depuis une fonction SQL : à valider sur un projet réel (droits du rôle propriétaire) ; procédure dans [Sécurité et données](securite-et-donnees.md) |
 | Politique de lecture des missions | Les missions publiées sont visibles de tous les cabinets : voulu, c'est une place de marché |
 | Politique de contenu | `'unsafe-inline'` est nécessaire à cause du build en fichier unique |
 | Quotas | Stockés en table : contention possible à forte charge, sans enjeu avant plusieurs centaines de cabinets |
 | Motif d'absence | « Maladie » ou « maternité » du titulaire est visible des candidats : afficher « Absence » serait plus discret |
+
+## Écritures multi-requêtes (analyse du sprint du 2026-10-23)
+
+Inventaire des actions de `src/lib/actions.ts` selon le nombre de requêtes que `difference()` (`src/lib/cloud/mapping.ts`) envoie à Supabase. Les requêtes partent dans l'ordre des collections (missions, candidatures, contrats, lignes, recommandations, invitations), sans transaction ; en cas d'échec au milieu, les suivantes sont abandonnées, le message est affiché et l'état est rechargé depuis le serveur.
+
+| Action | Requêtes | Risque d'état partiel |
+|---|---|---|
+| `retenir` | 1 mission + N candidatures + 1 contrat (N+2) | Oui : mission « pourvue » ou candidatures tranchées sans contrat créé. Seul cas à traiter |
+| `signer` | 1 mise à jour du contrat ; parrainage calculé par le serveur | Non |
+| `enregistrerFiche` | 1 appel `fiche_enregistrer` | Non |
+| `publierMission`, `candidater`, `majContrat`, `ajouterLigne`, `marquerPayee`, `recommander`, `inviter` | 1 | Non |
+| `attribuerBadges` | 1 insertion par badge nouveau | Faible : chaque badge est indépendant |
+
+**Piste, non réalisée** : une fonction SQL `retenir_remplacant(mission, remplacant)` en `security definer`, qui reprend les gardes existantes, remplace les N+2 requêtes par un seul appel `rpc` et est couverte par `03_regles_metier.sql` et `02_isolation_cabinets.sql`. Elle touche la base : à lancer après accord d'Alex. `signer` n'a pas besoin de fonction transactionnelle.
 
 ## Limites connues
 
